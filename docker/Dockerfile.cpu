@@ -1,0 +1,47 @@
+
+
+##################################################
+# Dockerfike for faiss-cpu
+# Copyright (c) 2024 Di-Is
+#
+# This software is released under the MIT License.
+# http://opensource.org/licenses/mit-license.php
+##################################################
+
+ARG AUDITWHEEL_POLICY="manylinux2014"
+ARG CUDA_MAJOR_VERSION
+
+FROM quay.io/pypa/manylinux2014_x86_64 as manylinux2014
+
+ENV CUDA_REPO_URL=http://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-rhel7.repo
+
+
+FROM quay.io/pypa/manylinux_2_28_x86_64 as manylinux_2_28
+
+ENV CUDA_REPO_URL=http://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo
+
+
+FROM ${AUDITWHEEL_POLICY}
+
+RUN yum install -y openblas-devel openblas-static \
+ && rm -rf /var/cache/yum/* \
+ && yum clean all
+
+COPY ./faiss /tmp/project/faiss
+WORKDIR /tmp/project
+
+ARG FAISS_OPT_LEVEL="generic"
+ARG FAISS_ENABLE_GPU="OFF"
+ARG FAISS_ENABLE_RAFT="OFF"
+ARG BUILD_NJOB=3
+RUN cd faiss \
+ && cmake . \
+       -B build \
+       -DFAISS_ENABLE_GPU=${FAISS_ENABLE_GPU} \
+       -DFAISS_ENABLE_RAFT=${FAISS_ENABLE_RAFT} \
+       -DFAISS_ENABLE_PYTHON=OFF \
+       -DBUILD_TESTING=OFF \
+       -DFAISS_OPT_LEVEL=${FAISS_OPT_LEVEL} \
+       -DCMAKE_BUILD_TYPE=Release \
+  && make -C build -j${BUILD_NJOB} \
+  && make -C build install

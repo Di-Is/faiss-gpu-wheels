@@ -1,0 +1,23 @@
+# Copyright (c) 2024 Di-Is
+#
+# This software is released under the MIT License.
+# http://opensource.org/licenses/mit-license.php
+#
+# The original license for this file is below.
+# ------------------------------------------------
+# Copyright (c) 2019 Kota Yamaguchi
+#
+# This software is released under the MIT License.
+# http://opensource.org/licenses/mit-license.php
+
+[build-system]
+requires = [
+    "setuptools",
+    "wheel",
+    "oldest-supported-numpy",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = ["faiss/tests"]

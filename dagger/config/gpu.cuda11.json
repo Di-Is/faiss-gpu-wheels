@@ -1,0 +1,80 @@
+{
+    "python": {
+        "support_versions": [
+            "3.8",
+            "3.9",
+            "3.10",
+            "3.11",
+            "3.12"
+        ]
+    },
+    "auditwheel": {
+        "policy": "manylinux_2_28",
+        "repair_option": [
+            "--exclude",
+            "libcudart.so.11.0",
+            "--exclude",
+            "libcublas.so.11"
+        ]
+    },
+    "cuda": {
+        "major_version": "11",
+        "minor_version": "8",
+        "runtime_version": "11.8.89",
+        "cublas_version": "11.11.3.6",
+        "architectures": "60-real;70-real;80-real;90-real",
+        "dynamic_link": true
+    },
+    "build": {
+        "njob": "8",
+        "parallel_wheel_build": true,
+        "instruction_set": "generic",
+        "enable_gpu": true,
+        "enable_raft": false
+    },
+    "test": {
+        "test_cuda_library_loading_in_redhat": {
+            "target_python_version": "3.12",
+            "image": "fedora:41",
+            "requires": [],
+            "cases": [
+                "test_import"
+            ]
+        },
+        "test_cuda_library_loading_in_debian": {
+            "target_python_version": "3.12",
+            "image": "python:3.12-slim",
+            "requires": [],
+            "cases": [
+                "test_import"
+            ]
+        },
+        "test_faiss_function": {
+            "target_python_version": "ALL",
+            "image": "python:{target_python_version}-slim",
+            "requires": [
+                "scipy",
+                "pytest"
+            ],
+            "cases": [
+                "test_cpu",
+                "test_gpu"
+            ]
+        },
+        "test_faiss_torch_contrib_function": {
+            "target_python_version": "ALL",
+            "image": "python:{target_python_version}-slim",
+            "requires": [
+                "scipy",
+                "pytest",
+                "torch>=2.1.0",
+                "--extra-index-url",
+                "https://download.pytorch.org/whl/cu118"
+            ],
+            "cases": [
+                "test_cpu_torch_contlib",
+                "test_gpu_torch_contlib"
+            ]
+        }
+    }
+}
