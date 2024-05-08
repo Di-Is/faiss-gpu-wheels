@@ -125,13 +125,6 @@ class WheelBuilder(AbsWheelBuilder):
                 "FAISS_ENABLE_RAFT", "ON" if self._build_config["enable_raft"] else ""
             )
             .with_exec(["git", "apply", "patch/modify-long-type.patch"])
-            .with_exec(
-                [
-                    "mv",
-                    "./faiss/faiss/python/swigfaiss.swig",
-                    "./faiss/faiss/python/swigfaiss.i",
-                ]
-            )
             .with_exec(["mkdir", "-p", self._raw_dir, self._repaired_dir])
         )
 
@@ -144,11 +137,7 @@ class WheelBuilder(AbsWheelBuilder):
         faiss_ver = await self._host_directory.file("version.txt").contents()
         faiss_ver = faiss_ver.replace("\n", "")
 
-        whlname_maker = WheelName(
-            faiss_ver,
-            self._auditwheel_config["policy"],
-            self._cuda_config["major_version"],
-        )
+        whlname_maker = WheelName(faiss_ver, self._auditwheel_config["policy"])
 
         builder = builder.with_exec(
             [
