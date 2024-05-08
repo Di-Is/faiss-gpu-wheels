@@ -27,6 +27,14 @@
         "README.md",
         "docker"
       ]
+    },
+    {
+      "name": "ci-view",
+      "patterns": [
+        "!faiss/.git",
+        "!.git*",
+        "!wheelhouse"
+      ]
     }
   ]
 }

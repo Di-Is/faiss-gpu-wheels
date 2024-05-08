@@ -25,6 +25,48 @@ DAGGER_ROOT = dirname(dirname(dirname(__file__)))
 
 @object_type
 class FaissWheels:
+    # uv package manager cache
+    uv_cache = dag.cache_volume("uv-cache")
+
+    @function
+    async def faiss_cpu_ci(self, host_directory: dagger.Directory) -> dagger.Directory:
+        """faiss-cpu ci pipeline
+
+        Args:
+            host_directory: host environment directory
+
+        Returns:
+            directory included faiss-cpu wheels
+        """
+        wheel_dir = await self.build_cpu_wheels(host_directory)
+        await self.test_cpu_wheels(host_directory, wheel_dir)
+        return wheel_dir
+
+    @function
+    async def faiss_gpu_ci(
+        self, host_directory: dagger.Directory, cuda_major_versions: list[int]
+    ) -> dagger.Directory:
+        """faiss-gpu ci pipeline
+
+        Args:
+            host_directory: host environment directory
+            cuda_major_versions: build target cuda major versions
+
+        Returns:
+            directory included faiss-gpu wheels
+        """
+        result: dict[int, dagger.Directory] = {}
+        for cu_ver in cuda_major_versions:
+            wheel_dir = await self.build_gpu_wheels(host_directory, cu_ver)
+            await self.test_gpu_wheels(host_directory, wheel_dir, cu_ver)
+            result[cu_ver] = wheel_dir
+
+        # combine wheels directory
+        wheel_dir = dag.directory()
+        for cu_ver, whl_dir in result.items():
+            wheel_dir = wheel_dir.with_directory(f"gpu/cuda{cu_ver}", whl_dir)
+        return wheel_dir
+
     @function
     async def build_cpu_container(
         self, host_directory: dagger.Directory
@@ -84,18 +126,20 @@ class FaissWheels:
 
     @function
     async def build_gpu_container(
-        self, cuda_major: int, host_directory: dagger.Directory
+        self,
+        host_directory: dagger.Directory,
+        cuda_major_version: int,
     ) -> dagger.Container:
         """Build faiss-gpu build image
 
         Args:
-            cuda_major: build target CUDA major version
             host_directory: host environment directory
+            cuda_major_version: build target CUDA major version
 
         Returns:
             container for faiss-gpu building
         """
-        cfg = self._load_gpu_config(cuda_major)
+        cfg = self._load_gpu_config(cuda_major_version)
 
         container = await gpu_builder.ImageBuilder(
             dag,
@@ -111,23 +155,23 @@ class FaissWheels:
     @function
     async def build_gpu_wheels(
         self,
-        cuda_major: int,
         host_directory: dagger.Directory,
+        cuda_major_version: int,
     ) -> dagger.Directory:
         """Build faiss-gpu wheels
 
         Args:
-            cuda_major: build target CUDA major version
             host_directory: host environment directory
+            cuda_major_version: build target CUDA major version
 
         Returns:
             directory included faiss-gpu wheels
         """
         # build image for faiss-gpu wheel building
-        container = await self.build_gpu_container(cuda_major, host_directory)
+        container = await self.build_gpu_container(host_directory, cuda_major_version)
 
         # build wheel
-        cfg = self._load_gpu_config(cuda_major)
+        cfg = self._load_gpu_config(cuda_major_version)
         wheel_builder = gpu_builder.WheelBuilder(
             container,
             host_directory,
@@ -145,14 +189,20 @@ class FaissWheels:
         return dag.directory().with_files(".", wheel_files)
 
     @function
-    async def test_gpu_wheels(self, cuda_major: int, host_directory: dagger.Directory):
+    async def test_gpu_wheels(
+        self,
+        host_directory: dagger.Directory,
+        wheel_directory: dagger.Directory,
+        cuda_major_version: int,
+    ):
         """test faiss-gpu wheels
 
         Args:
-            cuda_major: build target CUDA major version
             host_directory: host environment directory
+            wheel_directory: directory included wheels
+            cuda_major_version: build target CUDA major version
         """
-        cfg = self._load_gpu_config(cuda_major)
+        cfg = self._load_gpu_config(cuda_major_version)
         cfg = _expand_test_config(cfg)
 
         faiss_ver = await host_directory.file("version.txt").contents()
@@ -161,8 +211,6 @@ class FaissWheels:
         whlname_maker = gpu_builder.WheelName(
             faiss_ver, cfg["auditwheel"]["policy"], cfg["cuda"]["major_version"]
         )
-        # uv package manager cache
-        uv_cache = dag.cache_volume("uv-cache")
 
         for test_name, test_cfg in cfg["test"].items():
             print(f"Test case {test_name} Start")
@@ -180,14 +228,15 @@ class FaissWheels:
             container = (
                 container.with_directory("/project", host_directory)
                 .with_workdir("project")
+                .with_mounted_directory("wheelhouse", wheel_directory)
                 .with_env_variable("UV_CACHE_DIR", "/tmp/uv_cache")
-                .with_mounted_cache("/tmp/uv_cache", uv_cache)
+                .with_mounted_cache("/tmp/uv_cache", self.uv_cache)
                 .with_exec(
                     [
                         "uv",
                         "pip",
                         "install",
-                        f"wheelhouse/gpu/cuda{cuda_major}/{whl_name}[fix_cuda]",
+                        f"wheelhouse/{whl_name}[fix_cuda]",
                     ]
                     + test_cfg["requires"]
                 )
@@ -202,11 +251,14 @@ class FaissWheels:
             print(f"Test case {test_name} End")
 
     @function
-    async def test_cpu_wheels(self, host_directory: dagger.Directory):
+    async def test_cpu_wheels(
+        self, host_directory: dagger.Directory, wheel_directory: dagger.Directory
+    ):
         """test faiss-cpu wheels
 
         Args:
             host_directory: host environment directory
+            wheel_directory: directory included wheels
         """
         cfg = self._load_cpu_config()
         cfg = _expand_test_config(cfg)
@@ -215,8 +267,6 @@ class FaissWheels:
         faiss_ver = faiss_ver.replace("\n", "")
 
         whlname_maker = cpu_builder.WheelName(faiss_ver, cfg["auditwheel"]["policy"])
-        # uv package manager cache
-        uv_cache = dag.cache_volume("uv-cache")
 
         for test_name, test_cfg in cfg["test"].items():
             print(f"Test case {test_name} Start")
@@ -232,14 +282,15 @@ class FaissWheels:
             container = (
                 container.with_directory("/project", host_directory)
                 .with_workdir("project")
+                .with_mounted_directory("wheelhouse", wheel_directory)
                 .with_env_variable("UV_CACHE_DIR", "/tmp/uv_cache")
-                .with_mounted_cache("/tmp/uv_cache", uv_cache)
+                .with_mounted_cache("/tmp/uv_cache", self.uv_cache)
                 .with_exec(
                     [
                         "uv",
                         "pip",
                         "install",
-                        f"wheelhouse/cpu/{whl_name}",
+                        f"wheelhouse/{whl_name}",
                     ]
                     + test_cfg["requires"]
                 )
@@ -260,6 +311,16 @@ class FaissWheels:
         python_versions: list[str],
         parallel: bool = False,
     ) -> list[dagger.File]:
+        """build wheel
+
+        Args:
+            wheel_builder: concrete class of AbsWheelBuilder
+            python_versions: build target python versions
+            parallel: flag of paralell wheel building. Defaults to False.
+
+        Returns:
+            _description_
+        """
         if parallel:
             with start_blocking_portal() as tg:
                 results = [
@@ -292,16 +353,16 @@ class FaissWheels:
         return file
 
     @staticmethod
-    def _load_gpu_config(cuda_major: int) -> dict:
+    def _load_gpu_config(cuda_major_version: int) -> dict:
         """load gpu config
 
         Returns:
             gpu config
         """
-        if cuda_major not in [11, 12]:
-            raise ValueError(f"Incompatible cuda version. {cuda_major}")
+        if cuda_major_version not in [11, 12]:
+            raise ValueError(f"Incompatible cuda version. {cuda_major_version}")
 
-        with open(f"{DAGGER_ROOT}/config/gpu.cuda{cuda_major}.json", "r") as f:
+        with open(f"{DAGGER_ROOT}/config/gpu.cuda{cuda_major_version}.json", "r") as f:
             cfg = json.load(f)
         return cfg
 
