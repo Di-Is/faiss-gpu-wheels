@@ -1,11 +1,18 @@
-import os
+"""package setup.py.
+
+Copyright (c) 2024 Di-Is
+
+This software is released under the MIT License.
+http://opensource.org/licenses/mit-license.php
+"""
+
 import sys
+from pathlib import Path
 
 from setuptools import setup
 
 # Add project root to system path for import builder module.
-project_root = os.path.dirname(__file__)
-sys.path.append(project_root)
+sys.path.append(str(Path(__file__).parent))
 from builder.package_info import PackageInfo
 from builder.setup_preprocess import Preprocess
 
