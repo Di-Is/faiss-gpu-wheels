@@ -1,4 +1,4 @@
-"""Serve package information
+"""Serve package information.
 
 Copyright (c) 2024 Di-Is
 
@@ -6,20 +6,26 @@ This software is released under the MIT License.
 http://opensource.org/licenses/mit-license.php
 """
 
-import sys
-import os
-from typing import List, Dict
+from __future__ import annotations
 
-from setuptools import Extension
+import sys
+from pathlib import Path
+from typing import TYPE_CHECKING
+
 from setuptools.command.build_py import build_py
 
-from .extension import ExtensionsFactory
 from .config import Config, GPUConfig
+from .extension import ExtensionsFactory
 from .type import BuildType
 from .util import get_project_root
 
+if TYPE_CHECKING:
+    from setuptools import Extension
+
 
 class PackageInfo:
+    """Package infomation."""
+
     description: str = (
         "A library for efficient similarity search and clustering of dense vectors."
     )
@@ -32,7 +38,7 @@ class PackageInfo:
 
     @property
     def name(self) -> str:
-        """serve package name
+        """Serve package name.
 
         Returns:
             package name
@@ -56,19 +62,18 @@ class PackageInfo:
 
     @property
     def version(self) -> str:
-        """package version
+        """Package version.
 
         Returns:
             package version
         """
-        project_root = get_project_root()
-        with open(f"{project_root}/version.txt", "r") as f:
-            version = f.read()
-        return version
+        version_path = Path(get_project_root()) / "version.txt"
+        with version_path.open("r") as f:
+            return f.read()
 
     @property
-    def install_requires(self) -> List[str]:
-        """package dependencies
+    def install_requires(self) -> list[str]:
+        """Package dependencies.
 
         Returns:
             package dependencies
@@ -85,8 +90,8 @@ class PackageInfo:
         return requires
 
     @property
-    def extras_require(self) -> Dict[str, List[str]]:
-        """package extra dependencies
+    def extras_require(self) -> dict[str, list[str]]:
+        """Package extra dependencies.
 
         Returns:
             package extra dependencies
@@ -105,8 +110,8 @@ class PackageInfo:
         return extras
 
     @property
-    def packages(self) -> List[str]:
-        """packaging directories
+    def packages(self) -> list[str]:
+        """Packaging directories.
 
         Returns:
             packaging directories
@@ -114,22 +119,21 @@ class PackageInfo:
         return ["faiss", "faiss.contrib"]
 
     @property
-    def package_dir(self) -> Dict[str, str]:
-        """packaging directories path
+    def package_dir(self) -> dict[str, str]:
+        """Packaging directories path.
 
         Returns:
             packaging directories path
         """
-        faiss_root = os.path.join(get_project_root(), "faiss")
-        package_dir = {
-            "faiss": os.path.join(faiss_root, "faiss", "python"),
-            "faiss.contrib": os.path.join(faiss_root, "contrib"),
+        faiss_root = Path(get_project_root()) / "faiss"
+        return {
+            "faiss": str(faiss_root / "faiss" / "python"),
+            "faiss.contrib": str(faiss_root / "contrib"),
         }
-        return package_dir
 
     @property
-    def classifiers(self) -> List[str]:
-        """classifiers wrote to METADATA
+    def classifiers(self) -> list[str]:
+        """Classifiers wrote to METADATA.
 
         Returns:
             classifiers wrote to METADATA
@@ -159,18 +163,18 @@ class PackageInfo:
 
     @property
     def long_description(self) -> str:
-        """package long description
+        """Package long description.
 
         Returns:
             package long description
         """
-        root = get_project_root()
-        with open(os.path.join(root, "README.md")) as f:
+        readme_path = Path(get_project_root()) / "README.md"
+        with readme_path.open("r") as f:
             return f.read()
 
     @property
     def include_package_data(self) -> bool:
-        """Whether to package all non .py files
+        """Whether to package all non .py files.
 
         Returns:
             Whether to package all non .py files
@@ -178,8 +182,8 @@ class PackageInfo:
         return False
 
     @property
-    def package_data(self) -> Dict[str, List[str]]:
-        """data included in package
+    def package_data(self) -> dict[str, list[str]]:
+        """Data included in package.
 
         Returns:
             data included in package
@@ -187,20 +191,31 @@ class PackageInfo:
         return {"": ["*.i", "*.h", "TARGET_CUDA_MAJOR.txt"]}
 
     @property
-    def ext_modules(self) -> List[Extension]:
+    def ext_modules(self) -> list[Extension]:
+        """Package extension modules.
+
+        Returns:
+            Package extension module.
+        """
         cfg = Config()
         return ExtensionsFactory.generate(
             sys.platform, cfg.instruction_set, cfg.build_type
         )
 
     @property
-    def cmdclass(self):
+    def cmdclass(self) -> dict[str, build_py]:
+        """Custom build command.
+
+        Returns:
+            Custom build command
+        """
         return {"build_py": CustomBuildPy}
 
 
 class CustomBuildPy(build_py):
     """Run build_ext before build_py to compile swig code."""
 
-    def run(self):
+    def run(self) -> None:
+        """Execute build."""
         self.run_command("build_ext")
         return build_py.run(self)

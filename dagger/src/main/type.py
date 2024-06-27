@@ -1,4 +1,5 @@
-"""Serve datastructure in dagger pipeline
+"""Serve datastructure in dagger pipeline.
+
 Copyright (c) 2024 Di-Is
 
 This software is released under the MIT License.
@@ -9,15 +10,21 @@ from typing import TypedDict
 
 
 class AuditWheelConfig(TypedDict):
+    """auditwheel config."""
+
     policy: str
     repair_option: str
 
 
 class PythonConfig(TypedDict):
+    """python config."""
+
     support_versions: str
 
 
 class CUDAConfig(TypedDict):
+    """CUDA config."""
+
     major_version: str
     minor_version: str
     runtime_version: str
@@ -27,6 +34,8 @@ class CUDAConfig(TypedDict):
 
 
 class BuildConfig(TypedDict):
+    """Faiss build config."""
+
     instruction_set: str
     enable_gpu: bool
     enable_raft: bool

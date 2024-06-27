@@ -1,4 +1,4 @@
-"""Serve package information
+"""Serve package information.
 
 Copyright (c) 2024 Di-Is
 
@@ -6,8 +6,9 @@ This software is released under the MIT License.
 http://opensource.org/licenses/mit-license.php
 """
 
-import os
-from typing import List
+from __future__ import annotations
+
+from pathlib import Path
 
 from setuptools import Extension
 
@@ -17,11 +18,11 @@ from .util import get_project_root
 
 
 class IncludesFactory:
-    """Include diractory configure factory"""
+    """Include diractory configure factory."""
 
     @classmethod
-    def generate(cls, build_type: BuildType) -> List[str]:
-        """generate Include diractory configure
+    def generate(cls, build_type: BuildType) -> list[str]:
+        """Generate Include diractory configure.
 
         Args:
             build_type: build type
@@ -36,34 +37,34 @@ class IncludesFactory:
         return includes
 
     @classmethod
-    def _generate_cpu(cls) -> List[str]:
+    def _generate_cpu(cls) -> list[str]:
         import numpy as np
 
         project_root = get_project_root()
-        include_dirs = [
+
+        return [
             np.get_include(),
-            os.path.join(project_root, "faiss"),
-            os.path.join(Config().faiss_home, "include"),
+            str(Path(project_root) / "faiss"),
+            str(Path(Config().faiss_home) / "include"),
         ]
-        return include_dirs
 
     @classmethod
-    def _generare_gpu(cls) -> List[str]:
+    def _generare_gpu(cls) -> list[str]:
         include_dirs = cls._generate_cpu()
-        include_dirs.append(os.path.join(GPUConfig().cuda_home, "include"))
+        include_dirs.append(str(Path(GPUConfig().cuda_home) / "include"))
         return include_dirs
 
     @classmethod
-    def _generarte_raft(cls) -> List[str]:
+    def _generarte_raft(cls) -> list[str]:
         pass
 
 
 class LibrariesFactory:
-    """Library diractory configure factory"""
+    """Library diractory configure factory."""
 
     @classmethod
-    def generate(cls, build_type: BuildType) -> List[str]:
-        """generate Library diractory configure
+    def generate(cls, build_type: BuildType) -> list[str]:
+        """Generate Library diractory configure.
 
         Args:
             build_type: build type
@@ -78,19 +79,29 @@ class LibrariesFactory:
         return libraries
 
     @classmethod
-    def _generate_cpu(cls) -> List[str]:
-        return [os.path.join(Config().faiss_home, "lib")]
+    def _generate_cpu(cls) -> list[str]:
+        return [str(Path(Config().faiss_home) / "lib")]
 
     @classmethod
-    def _generare_gpu(cls) -> List[str]:
+    def _generare_gpu(cls) -> list[str]:
         libraries = cls._generate_cpu()
-        libraries += [os.path.join(GPUConfig().cuda_home, "lib64")]
+        libraries += [str(Path(GPUConfig().cuda_home) / "lib64")]
         return libraries
 
 
 class SwigOptions:
+    """Swig option generator."""
+
     @classmethod
-    def generate(cls, build_type: BuildType):
+    def generate(cls, build_type: BuildType) -> list[str]:
+        """Generate option.
+
+        Args:
+            build_type: _description_
+
+        Returns:
+            _description_
+        """
         swig_opts = ["-c++", "-Doverride=", "-doxygen"]
         swig_opts += [f"-I{x}" for x in IncludesFactory.generate(build_type)]
         if build_type == BuildType.GPU:
@@ -99,13 +110,13 @@ class SwigOptions:
 
 
 class ExtentionFactory:
-    """Extension factory"""
+    """Extension factory."""
 
     @staticmethod
     def generate(
         platform: str, instruction_set: InstructionSet, build_type: BuildType
     ) -> Extension:
-        """generate Extension
+        """Generate Extension.
 
         Args:
             platform: platform name
@@ -115,39 +126,36 @@ class ExtentionFactory:
         Returns:
             Extension object
         """
-        if platform == "windows":
-            raise NotImplementedError
-        elif platform == "darwin":
-            raise NotImplementedError
-        elif platform == "linux":
+        if platform == "linux":
             options = LinuxBuildOptionFactory.generate(instruction_set, build_type)
+        elif platform in ("windows", "darwin"):
+            raise NotImplementedError
         else:
             raise ValueError
 
-        root = os.path.join(get_project_root(), "faiss", "faiss", "python")
-        extension = Extension(
+        root = str(Path(get_project_root()) / "faiss" / "faiss" / "python")
+        return Extension(
             language="c++",
             sources=[
-                os.path.join(root, "swigfaiss.i"),
-                os.path.join(root, "python_callbacks.cpp"),
+                str(Path(root) / "swigfaiss.i"),
+                str(Path(root) / "python_callbacks.cpp"),
             ],
-            depends=[os.path.join(root, "python_callbacks.h")],
-            define_macros=[("FINTEGER", "int")],  # type: ignore
+            depends=[str(Path(root) / "python_callbacks.h")],
+            define_macros=[("FINTEGER", "int")],
             include_dirs=IncludesFactory.generate(build_type),
             library_dirs=LibrariesFactory.generate(build_type),
             **options,
         )
-        return extension
 
 
 class LinuxBuildOptionFactory:
-    """Linux build option generator"""
+    """Linux build option generator."""
 
     @classmethod
     def generate(
         cls, instruction_set: InstructionSet, build_type: BuildType
     ) -> BuildOption:
-        """generate build option for linux
+        """Generate build option for linux.
 
         Args:
             instruction_set: instruction set specified when building faiss
@@ -163,11 +171,12 @@ class LinuxBuildOptionFactory:
         elif instruction_set == InstructionSet.AVX512:
             option = cls._gen_avx512_option(build_type)
         else:
-            raise ValueError("Invalid instrunction set.")
+            msg = "Invalid instrunction set."
+            raise ValueError(msg)
         return option
 
     @classmethod
-    def _gen_generic_option(self, build_type: BuildType) -> BuildOption:
+    def _gen_generic_option(cls, build_type: BuildType) -> BuildOption:
         option = BuildOption()
 
         option["name"] = "faiss._swigfaiss"
@@ -235,13 +244,13 @@ class LinuxBuildOptionFactory:
 
 
 class ExtensionsFactory:
-    """Extensions factory"""
+    """Extensions factory."""
 
     @staticmethod
     def generate(
         platform: str, instruction_set: InstructionSet, build_type: BuildType
-    ) -> List[Extension]:
-        """generate extension list
+    ) -> list[Extension]:
+        """Generate extension list.
 
         Args:
             platform: platform name

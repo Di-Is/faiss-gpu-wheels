@@ -1,4 +1,4 @@
-"""Serve faiss-gpu building function using dagger pipeline
+"""Serve faiss-gpu building function using dagger pipeline.
 
 Copyright (c) 2024 Di-Is
 
@@ -6,32 +6,31 @@ This software is released under the MIT License.
 http://opensource.org/licenses/mit-license.php
 """
 
-import os
 import logging
+from pathlib import Path
 
-from dagger import Directory, Container, File, BuildArg
+from dagger import BuildArg, Container, Directory, File
 from dagger.client.gen import Client
 from dagger.log import configure_logging
 
 from .builder import AbsWheelBuilder
-from .type import CUDAConfig, AuditWheelConfig, BuildConfig, PythonConfig
-
+from .type import AuditWheelConfig, BuildConfig, CUDAConfig, PythonConfig
 
 configure_logging(logging.DEBUG)
 
 
 class ImageBuilder:
-    """image builder for faiss-gpu"""
+    """image builder for faiss-gpu."""
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         client: Client,
         host_directory: Directory,
         build_config: BuildConfig,
         auditwheel_config: AuditWheelConfig,
         cuda_config: CUDAConfig,
-    ):
-        """constructor
+    ) -> None:
+        """constructor.
 
         Args:
             client: dagger client
@@ -47,7 +46,7 @@ class ImageBuilder:
         self._cuda_config = cuda_config
 
     async def build(self) -> Container:
-        """build image using faiss-gpu wheel building
+        """Build image using faiss-gpu wheel building.
 
         Returns:
             container for faiss-gpu wheel building
@@ -79,12 +78,12 @@ class ImageBuilder:
 
 
 class WheelBuilder(AbsWheelBuilder):
-    """faiss-gpu wheel builder"""
+    """faiss-gpu wheel builder."""
 
     _raw_dir: str = "/output/raw_wheels"
     _repaired_dir: str = "/output/repaired_wheels"
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         builder: Container,
         host_directory: Directory,
@@ -92,8 +91,8 @@ class WheelBuilder(AbsWheelBuilder):
         auditwheel_config: AuditWheelConfig,
         python_config: PythonConfig,
         cuda_config: CUDAConfig,
-    ):
-        """constructor
+    ) -> None:
+        """constructor.
 
         Args:
             builder: container for faiss-gpu wheel building
@@ -111,7 +110,7 @@ class WheelBuilder(AbsWheelBuilder):
         self._cuda_config = cuda_config
 
     async def build(self, python_target_version: str) -> File:
-        """build faiss-gpu wheel
+        """Build faiss-gpu wheel.
 
         Args:
             python_target_version: build target python version
@@ -119,7 +118,6 @@ class WheelBuilder(AbsWheelBuilder):
         Returns:
             faiss-gpu wheel file
         """
-
         builder = (
             self._builder.with_directory("/project", self._host_directory)
             .with_workdir("/project")
@@ -150,8 +148,16 @@ class WheelBuilder(AbsWheelBuilder):
         )
 
         builder = builder.with_exec(
-            [f"python{python_target_version}", "-m"]
-            + ["pip", "wheel", ".", "--no-deps", "-w", self._raw_dir]
+            [
+                f"python{python_target_version}",
+                "-m",
+                "pip",
+                "wheel",
+                ".",
+                "--no-deps",
+                "-w",
+                self._raw_dir,
+            ]
         )
 
         # get faiss version
@@ -170,9 +176,9 @@ class WheelBuilder(AbsWheelBuilder):
                 "repair",
                 "-w",
                 self._repaired_dir,
-                os.path.join(
-                    self._raw_dir,
-                    whlname_maker.make_raw_wheelname(python_target_version),
+                str(
+                    Path(self._raw_dir)
+                    / whlname_maker.make_raw_wheelname(python_target_version)
                 ),
             ]
             + self._auditwheel_config["repair_option"]
@@ -185,12 +191,12 @@ class WheelBuilder(AbsWheelBuilder):
 
 
 class WheelName:
-    """faiss-gpu wheel name provider"""
+    """faiss-gpu wheel name provider."""
 
     def __init__(
         self, faiss_version: str, auditwheel_policy: str, cuda_major_version: str
     ) -> None:
-        """constructor
+        """constructor.
 
         Args:
             faiss_version: faiss python package version
@@ -204,7 +210,7 @@ class WheelName:
         self._platform = "linux"
 
     def make_raw_wheelname(self, python_version: str) -> str:
-        """make raw wheel name
+        """Make raw wheel name.
 
         Args:
             python_version: python version {major}.{minor}
@@ -212,16 +218,45 @@ class WheelName:
         Returns:
             raw wheel name
         """
-        python_version = python_version.replace(".", "")
-        name = f"faiss_gpu_cu{self._cuda_major_version}-{self._faiss_version}-cp{python_version}-cp{python_version}-{self._platform}_{self._arch}.whl"
-        return name
+        python_version = "cp" + python_version.replace(".", "")
+        name_parts = [
+            f"faiss_gpu_cu{self._cuda_major_version}",
+            self._faiss_version,
+            python_version,
+            python_version,
+            f"{self._platform}_{self._arch}",
+        ]
+        return "-".join(name_parts) + ".whl"
 
     def make_repaired_wheelname(self, python_version: str) -> str:
-        python_version = python_version.replace(".", "")
+        """Make repaired wheel name.
+
+        Args:
+            python_version: python version {major}.{minor}
+
+        Returns:
+            repaired wheel name
+        """
+        python_version = "cp" + python_version.replace(".", "")
         if self._auditwheel_policy == "manlylinux2014":
-            name = f"faiss_gpu_cu{self._cuda_major_version}-{self._faiss_version}-cp{python_version}-cp{python_version}-manylinux_2_17-{self._arch}-{self._auditwheel_policy}_{self._arch}.whl"
+            name_parts = [
+                f"faiss_gpu_cu{self._cuda_major_version}",
+                self._faiss_version,
+                python_version,
+                python_version,
+                "manylinux_2_17",
+                self._arch,
+                f"{self._auditwheel_policy}_{self._arch}",
+            ]
         elif self._auditwheel_policy == "manylinux_2_28":
-            name = f"faiss_gpu_cu{self._cuda_major_version}-{self._faiss_version}-cp{python_version}-cp{python_version}-{self._auditwheel_policy}_{self._arch}.whl"
+            name_parts = [
+                f"faiss_gpu_cu{self._cuda_major_version}",
+                self._faiss_version,
+                python_version,
+                python_version,
+                f"{self._auditwheel_policy}_{self._arch}",
+            ]
         else:
-            raise ValueError(f"Invalid auditwheel policy. {self._auditwheel_policy}")
-        return name
+            msg = f"Invalid auditwheel policy. {self._auditwheel_policy}"
+            raise ValueError(msg)
+        return "-".join(name_parts) + ".whl"

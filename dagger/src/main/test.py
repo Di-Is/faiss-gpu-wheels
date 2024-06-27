@@ -1,4 +1,4 @@
-"""Serve test function using dagger pipeline
+"""Serve test function using dagger pipeline.
 
 Copyright (c) 2024 Di-Is
 
@@ -6,11 +6,11 @@ This software is released under the MIT License.
 http://opensource.org/licenses/mit-license.php
 """
 
-from dagger import Container
+from dagger import Container, dag
 
 
 async def test_import(container: Container) -> str:
-    """test import
+    """Test import.
 
     Args:
         container: container installed python/faiss
@@ -23,7 +23,7 @@ async def test_import(container: Container) -> str:
 
 
 async def test_cpu(container: Container) -> str:
-    """test faiss-cpu test
+    """Test faiss-cpu test.
 
     Args:
         container: container installed python/faiss
@@ -38,7 +38,7 @@ async def test_cpu(container: Container) -> str:
 
 
 async def test_cpu_torch_contlib(container: Container) -> str:
-    """test faiss-cpu torch contlib test
+    """Test faiss-cpu torch contlib test.
 
     Args:
         container: container installed python/faiss
@@ -53,7 +53,7 @@ async def test_cpu_torch_contlib(container: Container) -> str:
 
 
 async def test_gpu(container: Container) -> str:
-    """test faiss-gpu torch test
+    """Test faiss-gpu torch test.
 
     Args:
         container: container installed python/faiss
@@ -72,7 +72,7 @@ async def test_gpu(container: Container) -> str:
 
 
 async def test_gpu_torch_contlib(container: Container) -> str:
-    """test faiss-gpu torch contlib test
+    """Test faiss-gpu torch contlib test.
 
     Args:
         container: container installed python/faiss
@@ -90,53 +90,20 @@ async def test_gpu_torch_contlib(container: Container) -> str:
     return await container.stdout()
 
 
-async def install_uv(container: Container) -> Container:
-    """install uv to container
+async def install_uv(container: Container, uv_version: str) -> Container:
+    """Install uv to container.
 
     Args:
         container: container
+        uv_version: install target uv version
 
     Returns:
         uv installed container
     """
-    # get python path
-    python_prefix = (
-        await container.with_exec(
-            ["python3", "-c", "import sys;print(sys.prefix)"]
-        ).stdout()
-    ).replace("\n", "")
+    # get uv from official docker image
+    uv_bin = dag.container().from_(f"ghcr.io/astral-sh/uv:{uv_version}").file("/uv")
 
-    # set python directory
-    container = container.with_env_variable("VIRTUAL_ENV", python_prefix)
+    # install uv
+    container = container.with_file("/usr/local/bin/uv", uv_bin)
 
-    # check exist
-    if len(await container.directory(f"{python_prefix}/bin").glob("python")) == 0:
-        container = container.with_exec(
-            [
-                "/bin/sh",
-                "-c",
-                f"ln -s `command -v python3` {python_prefix}/bin/python",
-            ]
-        )
-
-    container = await container.with_exec(
-        [
-            "bash",
-            "-c",
-            "yum install -y curl || apt update && apt install -y curl || dnf install -y curl || true",
-        ]
-    )
-
-    # install ul
-    container = container.with_exec(
-        ["/bin/sh", "-c", "curl -LsSf https://astral.sh/uv/install.sh | sh"]
-    )
-
-    # set uv path
-    uv_path = (
-        await container.with_exec(["/bin/sh", "-c", "ls -d ~/.cargo/bin/"]).stdout()
-    ).replace("\n", "")
-    container = container.with_env_variable("PATH", f"{uv_path}:$PATH", expand=True)
-    await container.sync()
-
-    return container
+    return await container.sync()

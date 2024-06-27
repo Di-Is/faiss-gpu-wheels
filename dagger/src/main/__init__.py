@@ -1,36 +1,45 @@
-"""Serve dagger CI pipeline
+"""Serve dagger CI pipeline.
+
 Copyright (c) 2024 Di-Is
 
 This software is released under the MIT License.
 http://opensource.org/licenses/mit-license.php
 """
 
+from __future__ import annotations
+
 import json
 import logging
-from os.path import dirname
+from pathlib import Path
+from typing import TYPE_CHECKING
 
-import dagger
-from dagger import dag, function, object_type
-from dagger.log import configure_logging
 from anyio.from_thread import start_blocking_portal
 
+import dagger
 import main.test
-from main import gpu_builder, cpu_builder
-from main.builder import AbsWheelBuilder
+from dagger import dag, function, object_type
+from dagger.log import configure_logging
+from main import cpu_builder, gpu_builder
+
+if TYPE_CHECKING:
+    from main.builder import AbsWheelBuilder
 
 configure_logging(logging.DEBUG)
 
-DAGGER_ROOT = dirname(dirname(dirname(__file__)))
+DAGGER_ROOT = Path(__file__).parent.parent.parent
 
 
 @object_type
 class FaissWheels:
+    """dagger ci piplline."""
+
     # uv package manager cache
     uv_cache = dag.cache_volume("uv-cache")
+    _uv_version = "0.2.17"
 
     @function
     async def faiss_cpu_ci(self, host_directory: dagger.Directory) -> dagger.Directory:
-        """faiss-cpu ci pipeline
+        """faiss-cpu ci pipeline.
 
         Args:
             host_directory: host environment directory
@@ -46,7 +55,7 @@ class FaissWheels:
     async def faiss_gpu_ci(
         self, host_directory: dagger.Directory, cuda_major_versions: list[int]
     ) -> dagger.Directory:
-        """faiss-gpu ci pipeline
+        """faiss-gpu ci pipeline.
 
         Args:
             host_directory: host environment directory
@@ -71,7 +80,7 @@ class FaissWheels:
     async def build_cpu_container(
         self, host_directory: dagger.Directory
     ) -> dagger.Container:
-        """Build faiss-cpu build image
+        """Build faiss-cpu build image.
 
         Args:
             host_directory: host environment directory
@@ -96,7 +105,7 @@ class FaissWheels:
         self,
         host_directory: dagger.Directory,
     ) -> dagger.Directory:
-        """Build faiss-cpu wheels
+        """Build faiss-cpu wheels.
 
         Args:
             host_directory: host environment directory
@@ -120,7 +129,7 @@ class FaissWheels:
         wheel_files = await self._build_wheels(
             wheel_builder,
             cfg["python"]["support_versions"],
-            cfg["build"]["parallel_wheel_build"],
+            parallel=cfg["build"]["parallel_wheel_build"],
         )
         return dag.directory().with_files(".", wheel_files)
 
@@ -130,7 +139,7 @@ class FaissWheels:
         host_directory: dagger.Directory,
         cuda_major_version: int,
     ) -> dagger.Container:
-        """Build faiss-gpu build image
+        """Build faiss-gpu build image.
 
         Args:
             host_directory: host environment directory
@@ -158,7 +167,7 @@ class FaissWheels:
         host_directory: dagger.Directory,
         cuda_major_version: int,
     ) -> dagger.Directory:
-        """Build faiss-gpu wheels
+        """Build faiss-gpu wheels.
 
         Args:
             host_directory: host environment directory
@@ -183,7 +192,7 @@ class FaissWheels:
         wheel_files = await self._build_wheels(
             wheel_builder,
             cfg["python"]["support_versions"],
-            cfg["build"]["parallel_wheel_build"],
+            parallel=cfg["build"]["parallel_wheel_build"],
         )
 
         return dag.directory().with_files(".", wheel_files)
@@ -194,8 +203,8 @@ class FaissWheels:
         host_directory: dagger.Directory,
         wheel_directory: dagger.Directory,
         cuda_major_version: int,
-    ):
-        """test faiss-gpu wheels
+    ) -> None:
+        """Test faiss-gpu wheels.
 
         Args:
             host_directory: host environment directory
@@ -212,13 +221,11 @@ class FaissWheels:
             faiss_ver, cfg["auditwheel"]["policy"], cfg["cuda"]["major_version"]
         )
 
-        for test_name, test_cfg in cfg["test"].items():
-            print(f"Test case {test_name} Start")
-
+        for test_cfg in cfg["test"].values():
             container = (
                 dag.container().from_(test_cfg["image"]).experimental_with_gpu(["0"])
             )
-            container = await main.test.install_uv(container)
+            container = await main.test.install_uv(container, self._uv_version)
             await container.sync()
 
             whl_name = whlname_maker.make_repaired_wheelname(
@@ -229,8 +236,9 @@ class FaissWheels:
                 container.with_directory("/project", host_directory)
                 .with_workdir("project")
                 .with_mounted_directory("wheelhouse", wheel_directory)
-                .with_env_variable("UV_CACHE_DIR", "/tmp/uv_cache")
-                .with_mounted_cache("/tmp/uv_cache", self.uv_cache)
+                .with_env_variable("UV_CACHE_DIR", "/root/.cache/uv")
+                .with_env_variable("UV_SYSTEM_PYTHON", "true")
+                .with_mounted_cache("/root/.cache/uv", self.uv_cache)
                 .with_exec(
                     [
                         "uv",
@@ -244,17 +252,14 @@ class FaissWheels:
             )
             await container.sync()
 
-            for test_name in test_cfg["cases"]:
-                func = getattr(main.test, test_name)
-                print(await func(container))
-
-            print(f"Test case {test_name} End")
+            for name in test_cfg["cases"]:
+                getattr(main.test, name)
 
     @function
     async def test_cpu_wheels(
         self, host_directory: dagger.Directory, wheel_directory: dagger.Directory
-    ):
-        """test faiss-cpu wheels
+    ) -> None:
+        """Test faiss-cpu wheels.
 
         Args:
             host_directory: host environment directory
@@ -268,11 +273,9 @@ class FaissWheels:
 
         whlname_maker = cpu_builder.WheelName(faiss_ver, cfg["auditwheel"]["policy"])
 
-        for test_name, test_cfg in cfg["test"].items():
-            print(f"Test case {test_name} Start")
-
+        for test_cfg in cfg["test"].values():
             container = dag.container().from_(test_cfg["image"])
-            container = await main.test.install_uv(container)
+            container = await main.test.install_uv(container, self._uv_version)
             await container.sync()
 
             whl_name = whlname_maker.make_repaired_wheelname(
@@ -283,8 +286,9 @@ class FaissWheels:
                 container.with_directory("/project", host_directory)
                 .with_workdir("project")
                 .with_mounted_directory("wheelhouse", wheel_directory)
-                .with_env_variable("UV_CACHE_DIR", "/tmp/uv_cache")
-                .with_mounted_cache("/tmp/uv_cache", self.uv_cache)
+                .with_env_variable("UV_CACHE_DIR", "/root/.cache/uv")
+                .with_env_variable("UV_SYSTEM_PYTHON", "true")
+                .with_mounted_cache("/root/.cache/uv", self.uv_cache)
                 .with_exec(
                     [
                         "uv",
@@ -298,20 +302,18 @@ class FaissWheels:
             )
             await container.sync()
 
-            for test_name in test_cfg["cases"]:
-                func = getattr(main.test, test_name)
-                print(await func(container))
-
-            print(f"Test case {test_name} End")
+            for name in test_cfg["cases"]:
+                getattr(main.test, name)
 
     @classmethod
     async def _build_wheels(
         cls,
         wheel_builder: AbsWheelBuilder,
         python_versions: list[str],
+        *,
         parallel: bool = False,
     ) -> list[dagger.File]:
-        """build wheel
+        """Build wheel.
 
         Args:
             wheel_builder: concrete class of AbsWheelBuilder
@@ -342,44 +344,46 @@ class FaissWheels:
     async def _build_wheel_specific_python(
         wheel_builder: AbsWheelBuilder, python_version: str
     ) -> dagger.File:
-        """build faiss gpu wheel
+        """Build faiss gpu wheel.
+
         Args:
-            version: build target python version ({major}.{minor})
+            wheel_builder: a
+            python_version: a
 
         Returns:
             built wheel file
         """
-        file = await wheel_builder.build(python_version)
-        return file
+        return await wheel_builder.build(python_version)
 
     @staticmethod
     def _load_gpu_config(cuda_major_version: int) -> dict:
-        """load gpu config
+        """Load gpu config.
 
         Returns:
             gpu config
         """
         if cuda_major_version not in [11, 12]:
-            raise ValueError(f"Incompatible cuda version. {cuda_major_version}")
+            msg = f"Incompatible cuda version. {cuda_major_version}"
+            raise ValueError(msg)
 
-        with open(f"{DAGGER_ROOT}/config/gpu.cuda{cuda_major_version}.json", "r") as f:
-            cfg = json.load(f)
-        return cfg
+        path = Path(DAGGER_ROOT) / "config" / f"gpu.cuda{cuda_major_version}.json"
+        with path.open("r") as f:
+            return json.load(f)
 
     @staticmethod
     def _load_cpu_config() -> str:
-        """load cpu config
+        """Load cpu config.
 
         Returns:
             cpu config
         """
-        with open(f"{DAGGER_ROOT}/config/cpu.json", "r") as f:
-            cfg = json.load(f)
-        return cfg
+        path = Path(DAGGER_ROOT) / "config" / "cpu.json"
+        with path.open("r") as f:
+            return json.load(f)
 
 
 def _expand_test_config(cfg: dict) -> dict:
-    """recognize special characters and expand test settings
+    """Recognize special characters and expand test settings.
 
     Args:
         cfg: config dict
