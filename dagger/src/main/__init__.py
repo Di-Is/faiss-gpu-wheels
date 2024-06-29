@@ -252,8 +252,9 @@ class FaissWheels:
             )
             await container.sync()
 
-            for name in test_cfg["cases"]:
-                getattr(main.test, name)
+            for case_name in test_cfg["cases"]:
+                func = getattr(main.test, case_name)
+                await func(container)
 
     @function
     async def test_cpu_wheels(
@@ -302,8 +303,9 @@ class FaissWheels:
             )
             await container.sync()
 
-            for name in test_cfg["cases"]:
-                getattr(main.test, name)
+            for case_name in test_cfg["cases"]:
+                func = getattr(main.test, case_name)
+                await func(container)
 
     @classmethod
     async def _build_wheels(
