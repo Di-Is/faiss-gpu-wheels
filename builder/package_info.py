@@ -80,7 +80,7 @@ class PackageInfo:
         """
         cfg = Config()
         gpu_cfg = GPUConfig()
-        requires = ["numpy", "packaging"]
+        requires = ["numpy<2", "packaging"]
         if cfg.build_type in [BuildType.GPU, BuildType.RAFT] and gpu_cfg.dynamic_link:
             cuda_major = gpu_cfg.cuda_major_version
             requires += [
