@@ -8,11 +8,13 @@ http://opensource.org/licenses/mit-license.php
 
 from __future__ import annotations
 
+import json
 import os
 import shutil
 from pathlib import Path
 
 from .config import Config, GPUConfig
+from .faiss.shared_library_preloader import PackageFileSearchArg
 from .type import BuildType
 from .util import get_project_root
 
@@ -58,7 +60,7 @@ class CPUPreProcess:
 class GPUPreProcess:
     """Preprocess for gpu build."""
 
-    cuda_major_file: str = "TARGET_CUDA_MAJOR.txt"
+    preload_shared_libraries_file: str = "PRELOAD_SHARED_LIBRARIES.json"
 
     @classmethod
     def execute(cls) -> None:
@@ -67,28 +69,47 @@ class GPUPreProcess:
         if not GPUConfig().dynamic_link:
             return
 
-        cls._write_cuda_major_version()
-        cls._insert_cuda_preloader_trigger_to_faiss()
-        cls._copy_cuda_preloader_to_faiss()
+        cls._write_preload_shared_libraries_file()
+        cls._insert_shared_library_preloader_trigger()
+        cls._copy_shared_library_preloader()
 
     @classmethod
-    def _write_cuda_major_version(cls) -> None:
-        """Write cuda major version to text file in faiss package."""
+    def _write_preload_shared_libraries_file(cls) -> None:
+        """Write preloading shared libs json in faiss package."""
         root = get_project_root()
         cfg = Config()
         gpu_cfg = GPUConfig()
 
-        # write cuda major version to faiss python package directory
-        cuda_major_txt_path = (
-            Path(root) / cfg.faiss_root / "faiss" / "python" / cls.cuda_major_file
+        json_path = (
+            Path(root)
+            / cfg.faiss_root
+            / "faiss"
+            / "python"
+            / cls.preload_shared_libraries_file
         )
 
-        with cuda_major_txt_path.open("w") as f:
-            f.write(gpu_cfg.cuda_major_version)
+        # write preload target shared libraries json to faiss python package directory
+        with json_path.open("w") as f:
+            # preload cuda runtime and cublas
+            json.dump(
+                [
+                    PackageFileSearchArg(
+                        package_name=f"nvidia-cuda-runtime-cu{gpu_cfg.cuda_major_version}",
+                        filename_regex=f"libcudart.so.{gpu_cfg.cuda_major_version}*",
+                        group="CUDA",
+                    ),
+                    PackageFileSearchArg(
+                        package_name=f"nvidia-cublas-cu{gpu_cfg.cuda_major_version}",
+                        filename_regex=f"libcublas.so.{gpu_cfg.cuda_major_version}",
+                        group="CUDA",
+                    ),
+                ],
+                f,
+            )
 
     @classmethod
-    def _insert_cuda_preloader_trigger_to_faiss(cls) -> None:
-        """Insert cure_prelaoder.py import line to faiss.loader.py."""
+    def _insert_shared_library_preloader_trigger(cls) -> None:
+        """Insert shared_library_preloader.py import line to faiss.loader.py."""
         trigger_str = '''
 ###################################################
 """
@@ -98,7 +119,7 @@ This software is released under the MIT License.
 http://opensource.org/licenses/mit-license.php
 """
 # Add faiss-wheels patch
-import faiss.cuda_preloader
+import faiss.shared_library_preload_trigger
 ###################################################
 
 '''
@@ -119,12 +140,15 @@ import faiss.cuda_preloader
             f.write(trigger_str + os.linesep + content)
 
     @classmethod
-    def _copy_cuda_preloader_to_faiss(cls) -> None:
-        """Copy cuda_preloader.py to faiss package."""
+    def _copy_shared_library_preloader(cls) -> None:
+        """Copy shared library preloader to faiss package."""
         cfg = Config()
-        src_path = str(Path(Path(__file__).parent) / "faiss" / "cuda_preloader.py")
-        dest_path = str(Path(get_project_root()) / cfg.faiss_root / "faiss" / "python")
-        shutil.copy(src_path, dest_path)
+
+        for src_path in (Path(__file__).parent / "faiss").glob("*.py"):
+            dest_path = str(
+                Path(get_project_root()) / cfg.faiss_root / "faiss" / "python"
+            )
+            shutil.copy(src_path, dest_path)
 
 
 class RAFTPreProcess:

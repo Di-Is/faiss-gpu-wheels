@@ -188,7 +188,7 @@ class PackageInfo:
         Returns:
             data included in package
         """
-        return {"": ["*.i", "*.h", "TARGET_CUDA_MAJOR.txt"]}
+        return {"": ["*.i", "*.h", "PRELOAD_SHARED_LIBRARIES.json"]}
 
     @property
     def ext_modules(self) -> list[Extension]:
