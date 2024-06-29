@@ -38,7 +38,7 @@ def search_install_file_path(package_name: str, filename_regex: str) -> str:
     Returns:
         file absolute path
     """
-    for file"regex pattern file isn't found in package" in distribution(package_name).files:
+    for file in distribution(package_name).files:
         if re.search(filename_regex, file.name):
             return str(file.locate())
     msg = f"{filename_regex} pattern file isn't found in {package_name} package"
