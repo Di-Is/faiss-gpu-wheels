@@ -8,7 +8,7 @@ env:
   RUFF_VERSION: 0.5.0
 
 jobs:
-  lint:
+  format:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,7 +19,7 @@ jobs:
       - name: "Ruff format"
         run: pipx run ruff format --diff .
 
-  format:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
