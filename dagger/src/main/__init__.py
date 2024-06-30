@@ -36,6 +36,45 @@ class FaissWheels:
     # uv package manager cache
     uv_cache = dag.cache_volume("uv-cache")
     _uv_version = "0.2.17"
+    ruff_version = "0.5.0"
+
+    @function
+    async def lint(self, source: dagger.Directory) -> str:
+        """Linting code.
+
+        Args:
+            source: source directry
+
+        Returns:
+            stdout at runtime
+        """
+        container = (
+            dag.container()
+            .from_(f"ghcr.io/astral-sh/ruff:{self.ruff_version}")
+            .with_directory("/project", source)
+            .with_workdir("/project")
+            .with_exec(["check", "."])
+        )
+        return await container.stdout()
+
+    @function
+    async def format(self, source: dagger.Directory) -> str:
+        """Formating code.
+
+        Args:
+            source: source directry
+
+        Returns:
+            stdout at runtime
+        """
+        container = (
+            dag.container()
+            .from_(f"ghcr.io/astral-sh/ruff:{self.ruff_version}")
+            .with_directory("/project", source)
+            .with_workdir("/project")
+            .with_exec(["format", ".", "--diff"])
+        )
+        return await container.stdout()
 
     @function
     async def faiss_cpu_ci(self, host_directory: dagger.Directory) -> dagger.Directory:

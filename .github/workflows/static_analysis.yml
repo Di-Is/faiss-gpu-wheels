@@ -5,7 +5,7 @@ on:
   pull_request:
 
 env:
-  RUFF_VERSION: 0.5.0
+  DAGGER_VERSION: 0.11.2
 
 jobs:
   format:
@@ -13,19 +13,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: "Ruff install"
-        run: pipx install ruff==${RUFF_VERSION}
-
-      - name: "Ruff format"
-        run: pipx run ruff format --diff .
+      - name: format
+        uses: dagger/dagger-for-github@v5
+        with:
+          verb: call
+          args: "format --source ."
+          cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
+          version: ${DAGGER_VERSION}
 
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: "Ruff install"
-        run: pipx install ruff==${RUFF_VERSION}
-
-      - name: "Ruff lint"
-        run: pipx run ruff check .
+      - name: lint
+        uses: dagger/dagger-for-github@v5
+        with:
+          verb: call
+          args: "lint --source ."
+          cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
+          version: ${DAGGER_VERSION}
