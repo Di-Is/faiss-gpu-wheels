@@ -1,0 +1,31 @@
+name: Static analysis
+
+on:
+  workflow_call:
+  pull_request:
+
+env:
+  RUFF_VERSION: 0.5.0
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "Ruff install"
+        run: pipx install ruff==${RUFF_VERSION}
+
+      - name: "Ruff format"
+        run: pipx run ruff format --diff .
+
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "Ruff install"
+        run: pipx install ruff==${RUFF_VERSION}
+
+      - name: "Ruff lint"
+        run: pipx run ruff check .
