@@ -1,0 +1,21 @@
+Modify 
+
+Copyright (c) 2024 Di-Is
+
+This software is released under the MIT License.
+http://opensource.org/licenses/mit-license.php
+
+diff --git a/faiss/faiss/gpu/impl/RaftIVFFlat.cu b/faiss/faiss/gpu/impl/RaftIVFFlat.cu
+index 1e31072..96e7394 100644
+--- a/faiss/faiss/gpu/impl/RaftIVFFlat.cu
++++ b/faiss/faiss/gpu/impl/RaftIVFFlat.cu
+@@ -403,7 +403,8 @@ void RaftIVFFlat::copyInvertedListsFrom(const InvertedLists* ivf) {
+     }
+ 
+     // Update the pointers and the sizes
+-    raft_knn_index.value().recompute_internal_state(raft_handle);
++    // raft_knn_index.value().recompute_internal_state(raft_handle);
++    raft::neighbors::ivf_flat::helpers::recompute_internal_state(raft_handle, &(raft_knn_index.value()));
+ 
+     for (size_t i = 0; i < nlist; ++i) {
+         size_t listSize = ivf->list_size(i);

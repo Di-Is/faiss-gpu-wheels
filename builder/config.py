@@ -123,3 +123,26 @@ class GPUConfig:
             CUDA dynamic link flag
         """
         return bool(os.getenv("CUDA_DYNAMIC_LINK", ""))
+
+
+@dataclass
+class RAFTConfig:
+    """RAFT Config."""
+
+    @property
+    def raft_version(self) -> str:
+        """RAFT version.
+
+        Returns:
+            RAFT version.
+        """
+        return os.getenv("RAFT_VERSION")
+
+    @property
+    def raft_home(self) -> str:
+        """RAFT home directory path.
+
+        Returns:
+            RAFT home directory path.
+        """
+        return os.getenv("RAFT_HOME", "/opt/conda")

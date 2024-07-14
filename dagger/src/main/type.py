@@ -40,3 +40,9 @@ class BuildConfig(TypedDict):
     enable_gpu: bool
     enable_raft: bool
     njob: int
+
+
+class RAFTConfig(TypedDict):
+    """RAFT config."""
+
+    version: str

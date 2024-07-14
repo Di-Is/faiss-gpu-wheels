@@ -19,7 +19,7 @@ import dagger
 import main.test
 from dagger import dag, function, object_type
 from dagger.log import configure_logging
-from main import cpu_builder, gpu_builder
+from main import cpu_builder, gpu_builder, raft_builder
 
 if TYPE_CHECKING:
     from main.builder import AbsWheelBuilder
@@ -113,6 +113,31 @@ class FaissWheels:
         wheel_dir = dag.directory()
         for cu_ver, whl_dir in result.items():
             wheel_dir = wheel_dir.with_directory(f"gpu/cuda{cu_ver}", whl_dir)
+        return wheel_dir
+
+    @function
+    async def faiss_raft_ci(
+        self, host_directory: dagger.Directory, cuda_major_versions: list[int]
+    ) -> dagger.Directory:
+        """faiss-gpu ci pipeline.
+
+        Args:
+            host_directory: host environment directory
+            cuda_major_versions: build target cuda major versions
+
+        Returns:
+            directory included faiss-gpu wheels
+        """
+        result: dict[int, dagger.Directory] = {}
+        for cu_ver in cuda_major_versions:
+            wheel_dir = await self.build_raft_wheels(host_directory, cu_ver)
+            await self.test_raft_wheels(host_directory, wheel_dir, cu_ver)
+            result[cu_ver] = wheel_dir
+
+        # combine wheels directory
+        wheel_dir = dag.directory()
+        for cu_ver, whl_dir in result.items():
+            wheel_dir = wheel_dir.with_directory(f"gpu_raft/cuda{cu_ver}", whl_dir)
         return wheel_dir
 
     @function
@@ -237,6 +262,72 @@ class FaissWheels:
         return dag.directory().with_files(".", wheel_files)
 
     @function
+    async def build_raft_container(
+        self,
+        host_directory: dagger.Directory,
+        cuda_major_version: int,
+    ) -> dagger.Container:
+        """Build faiss-gpu-raft build image.
+
+        Args:
+            host_directory: host environment directory
+            cuda_major_version: build target CUDA major version
+
+        Returns:
+            container for faiss-gpu building
+        """
+        cfg = self._load_raft_config(cuda_major_version)
+
+        container = await raft_builder.ImageBuilder(
+            dag,
+            host_directory,
+            cfg["build"],
+            cfg["auditwheel"],
+            cfg["cuda"],
+            cfg["raft"],
+        ).build()
+
+        await container.sync()
+        return container
+
+    @function
+    async def build_raft_wheels(
+        self,
+        host_directory: dagger.Directory,
+        cuda_major_version: int,
+    ) -> dagger.Directory:
+        """Build faiss-gpu-raft wheels.
+
+        Args:
+            host_directory: host environment directory
+            cuda_major_version: build target CUDA major version
+
+        Returns:
+            directory included faiss-gpu wheels
+        """
+        # build image for faiss-gpu wheel building
+        container = await self.build_raft_container(host_directory, cuda_major_version)
+
+        # build wheel
+        cfg = self._load_raft_config(cuda_major_version)
+        wheel_builder = raft_builder.WheelBuilder(
+            container,
+            host_directory,
+            cfg["build"],
+            cfg["auditwheel"],
+            cfg["python"],
+            cfg["cuda"],
+            cfg["raft"],
+        )
+        wheel_files = await self._build_wheels(
+            wheel_builder,
+            cfg["python"]["support_versions"],
+            parallel=cfg["build"]["parallel_wheel_build"],
+        )
+
+        return dag.directory().with_files(".", wheel_files)
+
+    @function
     async def test_gpu_wheels(
         self,
         host_directory: dagger.Directory,
@@ -257,6 +348,65 @@ class FaissWheels:
         faiss_ver = faiss_ver.replace("\n", "")
 
         whlname_maker = gpu_builder.WheelName(
+            faiss_ver, cfg["auditwheel"]["policy"], cfg["cuda"]["major_version"]
+        )
+
+        for test_cfg in cfg["test"].values():
+            container = (
+                dag.container().from_(test_cfg["image"]).experimental_with_gpu(["0"])
+            )
+            container = await main.test.install_uv(container, self._uv_version)
+            await container.sync()
+
+            whl_name = whlname_maker.make_repaired_wheelname(
+                test_cfg["target_python_version"]
+            )
+
+            container = (
+                container.with_directory("/project", host_directory)
+                .with_workdir("project")
+                .with_mounted_directory("wheelhouse", wheel_directory)
+                .with_env_variable("UV_CACHE_DIR", "/root/.cache/uv")
+                .with_env_variable("UV_SYSTEM_PYTHON", "true")
+                .with_mounted_cache("/root/.cache/uv", self.uv_cache)
+                .with_exec(
+                    [
+                        "uv",
+                        "pip",
+                        "install",
+                        f"wheelhouse/{whl_name}[fix_cuda]",
+                    ]
+                    + test_cfg["requires"]
+                )
+                .with_env_variable("OMP_NUM_THREADS", "1")
+            )
+            await container.sync()
+
+            for case_name in test_cfg["cases"]:
+                func = getattr(main.test, case_name)
+                await func(container)
+
+    @function
+    async def test_raft_wheels(
+        self,
+        host_directory: dagger.Directory,
+        wheel_directory: dagger.Directory,
+        cuda_major_version: int,
+    ) -> None:
+        """Test faiss-gpu-raft wheels.
+
+        Args:
+            host_directory: host environment directory
+            wheel_directory: directory included wheels
+            cuda_major_version: build target CUDA major version
+        """
+        cfg = self._load_raft_config(cuda_major_version)
+        cfg = _expand_test_config(cfg)
+
+        faiss_ver = await host_directory.file("version.txt").contents()
+        faiss_ver = faiss_ver.replace("\n", "")
+
+        whlname_maker = raft_builder.WheelName(
             faiss_ver, cfg["auditwheel"]["policy"], cfg["cuda"]["major_version"]
         )
 
@@ -395,6 +545,21 @@ class FaissWheels:
             built wheel file
         """
         return await wheel_builder.build(python_version)
+
+    @staticmethod
+    def _load_raft_config(cuda_major_version: int) -> dict:
+        """Load raft config.
+
+        Returns:
+            raft config
+        """
+        if cuda_major_version not in [11, 12]:
+            msg = f"Incompatible cuda version. {cuda_major_version}"
+            raise ValueError(msg)
+
+        path = Path(DAGGER_ROOT) / "config" / f"raft.cuda{cuda_major_version}.json"
+        with path.open("r") as f:
+            return json.load(f)
 
     @staticmethod
     def _load_gpu_config(cuda_major_version: int) -> dict:

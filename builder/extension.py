@@ -12,7 +12,7 @@ from pathlib import Path
 
 from setuptools import Extension
 
-from .config import Config, GPUConfig
+from .config import Config, GPUConfig, RAFTConfig
 from .type import BuildOption, BuildType, InstructionSet
 from .util import get_project_root
 
@@ -33,7 +33,9 @@ class IncludesFactory:
         if build_type == BuildType.CPU:
             includes = cls._generate_cpu()
         elif build_type == BuildType.GPU:
-            includes = cls._generare_gpu()
+            includes = cls._generate_gpu()
+        elif build_type == BuildType.RAFT:
+            includes = cls._generate_raft()
         return includes
 
     @classmethod
@@ -49,17 +51,22 @@ class IncludesFactory:
         ]
 
     @classmethod
-    def _generare_gpu(cls) -> list[str]:
+    def _generate_gpu(cls) -> list[str]:
         include_dirs = cls._generate_cpu()
         include_dirs.append(str(Path(GPUConfig().cuda_home) / "include"))
         return include_dirs
 
     @classmethod
-    def _generarte_raft(cls) -> list[str]:
-        pass
+    def _generate_raft(cls) -> list[str]:
+        include_dirs = cls._generate_cpu()
+        include_dirs.append(str(Path(GPUConfig().cuda_home) / "include"))
+        include_dirs.append(str(Path(RAFTConfig().raft_home) / "include"))
+        return include_dirs
 
 
 class LibrariesFactory:
+    """Library diractory configure factory."""
+
     """Library diractory configure factory."""
 
     @classmethod
@@ -75,7 +82,9 @@ class LibrariesFactory:
         if build_type == BuildType.CPU:
             libraries = cls._generate_cpu()
         elif build_type == BuildType.GPU:
-            libraries = cls._generare_gpu()
+            libraries = cls._generate_gpu()
+        elif build_type == BuildType.RAFT:
+            libraries = cls._generate_raft()
         return libraries
 
     @classmethod
@@ -83,9 +92,16 @@ class LibrariesFactory:
         return [str(Path(Config().faiss_home) / "lib")]
 
     @classmethod
-    def _generare_gpu(cls) -> list[str]:
+    def _generate_gpu(cls) -> list[str]:
         libraries = cls._generate_cpu()
         libraries += [str(Path(GPUConfig().cuda_home) / "lib64")]
+        return libraries
+
+    @classmethod
+    def _generate_raft(cls) -> list[str]:
+        libraries = cls._generate_cpu()
+        libraries += [str(Path(GPUConfig().cuda_home) / "lib64")]
+        libraries += [str(Path(RAFTConfig().raft_home) / "lib")]
         return libraries
 
 
@@ -104,8 +120,10 @@ class SwigOptions:
         """
         swig_opts = ["-c++", "-Doverride=", "-doxygen"]
         swig_opts += [f"-I{x}" for x in IncludesFactory.generate(build_type)]
-        if build_type == BuildType.GPU:
+        if build_type in [BuildType.GPU, BuildType.RAFT]:
             swig_opts.append("-DGPU_WRAPPER")
+        swig_opts.append("-D_GLIBCXX_USE_CXX11_ABI=ON")
+        swig_opts.append("-DGLIBCXX_USE_CXX11_ABI=ON")
         return swig_opts
 
 
@@ -187,7 +205,7 @@ class LinuxBuildOptionFactory:
         option["extra_link_args"] = ["-fopenmp", "-lrt", "-s", "-Wl,--gc-sections"]
         option["extra_link_args"] += ["-l:libfaiss.a", "-l:libopenblas.a", "-lgfortran"]
 
-        if build_type == BuildType.GPU:
+        if build_type in (BuildType.GPU, BuildType.RAFT):
             option["extra_link_args"].append("-l:libfaiss_gpu.a")
             if GPUConfig().dynamic_link:
                 option["extra_link_args"] += [
@@ -201,6 +219,9 @@ class LinuxBuildOptionFactory:
                     "-lcudart_static",
                     "-lculibos",
                 ]
+        if build_type == BuildType.RAFT:
+            option["extra_link_args"].append("-l:libraft.so")
+
         swig_opts = SwigOptions.generate(build_type)
         option["swig_opts"] = swig_opts
         option["swig_opts"] += ["-DSWIGWORDSIZE64"]

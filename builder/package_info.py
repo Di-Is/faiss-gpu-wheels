@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 
 from setuptools.command.build_py import build_py
 
-from .config import Config, GPUConfig
+from .config import Config, GPUConfig, RAFTConfig
 from .extension import ExtensionsFactory
 from .type import BuildType
 from .util import get_project_root
@@ -87,6 +87,10 @@ class PackageInfo:
                 f"nvidia-cuda-runtime-cu{cuda_major}>={gpu_cfg.cuda_runtime_version}",
                 f"nvidia-cublas-cu{cuda_major}>={gpu_cfg.cublas_version}",
             ]
+            if cfg.build_type == BuildType.RAFT:
+                requires.append(
+                    f"pylibraft-cu{cuda_major}=={RAFTConfig().raft_version}"
+                )
         return requires
 
     @property
