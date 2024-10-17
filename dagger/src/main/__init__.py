@@ -53,7 +53,7 @@ class FaissWheels:
             .from_(f"ghcr.io/astral-sh/ruff:{self.ruff_version}")
             .with_directory("/project", source)
             .with_workdir("/project")
-            .with_exec(["check", "."])
+            .with_exec(["/ruff", "check", "."])
         )
         return await container.stdout()
 
@@ -72,7 +72,7 @@ class FaissWheels:
             .from_(f"ghcr.io/astral-sh/ruff:{self.ruff_version}")
             .with_directory("/project", source)
             .with_workdir("/project")
-            .with_exec(["format", ".", "--diff"])
+            .with_exec(["/ruff", "format", ".", "--diff"])
         )
         return await container.stdout()
 

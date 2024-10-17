@@ -2,17 +2,8 @@
   "name": "faiss-wheels",
   "sdk": "python",
   "source": "dagger",
-  "engineVersion": "v0.11.2",
+  "engineVersion": "v0.13.5",
   "views": [
-    {
-      "name": "test-view",
-      "patterns": [
-        "faiss",
-        "!faiss/.git",
-        "version.txt",
-        "wheelhouse"
-      ]
-    },
     {
       "name": "build-view",
       "patterns": [
@@ -34,6 +25,15 @@
         "!faiss/.git",
         "!.git*",
         "!wheelhouse"
+      ]
+    },
+    {
+      "name": "test-view",
+      "patterns": [
+        "faiss",
+        "!faiss/.git",
+        "version.txt",
+        "wheelhouse"
       ]
     }
   ]
