@@ -43,21 +43,21 @@ The following command will install faiss and the CUDA Runtime and cuBLAS for CUD
 
 ```bash
 # install CUDA 12.1 at the same time
-pip install faiss-gpu-cu12[fix_cuda]
+pip install faiss-gpu-cu12[fix-cuda]
 ```
 
 **Requirements**
 * OS: Linux
   * arch: x86_64
   * glibc >=2.28
-* Nvidia driver: >=R530 (specify `fix_cuda` extra during installation)
+* Nvidia driver: >=R530 (specify `fix-cuda` extra during installation)
 * GPU architectures: Pascal\~Hopper (Compute Capability: 6.0\~9.0)
 
 **Advanced**
 
 The `faiss-gpu-cu12` package (the binaries contained in it) is minor version compatible with CUDA and will work dynamically linked with CUDA 12.X (X>=1).
 
-Installation of the CUDA runtime and cuBLAS is allowed to the extent that minor version compatibility is maintained by excluding the `fix_cuda` extra.
+Installation of the CUDA runtime and cuBLAS is allowed to the extent that minor version compatibility is maintained by excluding the `fix-cuda` extra.
 
 This is useful when coexisting this package with a package that has a dependency on the CUDA Toolkit used at build time, such as Pytorch or Tensorflow.
 
@@ -80,19 +80,19 @@ The following command will install faiss and the CUDA Runtime and cuBLAS for CUD
 
 ```bash
 # install CUDA 11.8 at the same time
-pip install faiss-gpu-cu11[fix_cuda]
+pip install faiss-gpu-cu11[fix-cuda]
 ```
 
 **Requirements**
 * OS: Linux
   * arch: x86_64
   * glibc >=2.28
-* Nvidia driver: >=R520 (specify `fix_cuda` extra during installation)
+* Nvidia driver: >=R520 (specify `fix-cuda` extra during installation)
 * GPU architectures: Pascal\~Hopper (Compute Capability: 6.0\~9.0)
 
 **Advanced**
 
-Since CUDA 11.8 is the final version of the CUDA 11 series, the results are the same with or without the `fix_cuda` extras.
+Since CUDA 11.8 is the final version of the CUDA 11 series, the results are the same with or without the `fix-cuda` extras.
 
 ```bash
 # install CUDA 11.X(X>=8) at the same time

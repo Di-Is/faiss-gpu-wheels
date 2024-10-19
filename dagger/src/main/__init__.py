@@ -283,7 +283,7 @@ class FaissWheels:
                         "uv",
                         "pip",
                         "install",
-                        f"wheelhouse/{whl_name}[fix_cuda]",
+                        f"wheelhouse/{whl_name}[fix-cuda]",
                     ]
                     + test_cfg["requires"]
                 )
