@@ -35,8 +35,8 @@ class FaissWheels:
 
     # uv package manager cache
     uv_cache = dag.cache_volume("uv-cache")
-    _uv_version = "0.2.17"
-    ruff_version = "0.5.0"
+    _uv_version = "0.4.24"
+    ruff_version = "0.7.0"
 
     @function
     async def lint(self, source: dagger.Directory) -> str:
@@ -277,13 +277,14 @@ class FaissWheels:
                 .with_mounted_directory("wheelhouse", wheel_directory)
                 .with_env_variable("UV_CACHE_DIR", "/root/.cache/uv")
                 .with_env_variable("UV_SYSTEM_PYTHON", "true")
+                .with_env_variable("UV_HTTP_TIMEOUT", "10000000")
                 .with_mounted_cache("/root/.cache/uv", self.uv_cache)
                 .with_exec(
                     [
                         "uv",
                         "pip",
                         "install",
-                        f"wheelhouse/{whl_name}[fix_cuda]",
+                        f"wheelhouse/{whl_name}[fix-cuda]",
                     ]
                     + test_cfg["requires"]
                 )
@@ -328,6 +329,7 @@ class FaissWheels:
                 .with_mounted_directory("wheelhouse", wheel_directory)
                 .with_env_variable("UV_CACHE_DIR", "/root/.cache/uv")
                 .with_env_variable("UV_SYSTEM_PYTHON", "true")
+                .with_env_variable("UV_HTTP_TIMEOUT", "10000000")
                 .with_mounted_cache("/root/.cache/uv", self.uv_cache)
                 .with_exec(
                     [

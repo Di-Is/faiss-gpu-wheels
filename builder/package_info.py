@@ -116,7 +116,7 @@ class PackageInfo:
         Returns:
             packaging directories
         """
-        return ["faiss", "faiss.contrib"]
+        return ["faiss", "faiss.contrib", "faiss.contrib.torch"]
 
     @property
     def package_dir(self) -> dict[str, str]:
@@ -129,6 +129,7 @@ class PackageInfo:
         return {
             "faiss": str(faiss_root / "faiss" / "python"),
             "faiss.contrib": str(faiss_root / "contrib"),
+            "faiss.contrib.torch": str(faiss_root / "contrib" / "torch"),
         }
 
     @property

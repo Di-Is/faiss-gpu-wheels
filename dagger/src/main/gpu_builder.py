@@ -22,7 +22,7 @@ configure_logging(logging.DEBUG)
 class ImageBuilder:
     """image builder for faiss-gpu."""
 
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         client: Client,
         host_directory: Directory,
@@ -143,7 +143,6 @@ class WheelBuilder(AbsWheelBuilder):
             .with_env_variable(
                 "FAISS_ENABLE_RAFT", "ON" if self._build_config["enable_raft"] else ""
             )
-            .with_exec(["git", "apply", "patch/modify-long-type.patch"])
             .with_exec(["mkdir", "-p", self._raw_dir, self._repaired_dir])
         )
 
