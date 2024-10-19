@@ -35,7 +35,7 @@
     "test": {
         "test_cuda_library_loading_in_redhat": {
             "target_python_version": "3.12",
-            "image": "fedora:41",
+            "image": "fedora:40",
             "requires": [],
             "cases": [
                 "test_import"
