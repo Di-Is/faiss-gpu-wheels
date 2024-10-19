@@ -125,7 +125,7 @@ When executed, a wheel is created under "{repository root}/wheelhouse/gpu/cuXX".
 **Requirements**
 * OS: Linux
   * arch: x86_64
-* Dagger: v0.11.2
+* Dagger: v0.13.5
 
 ### Test wheels
 
