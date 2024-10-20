@@ -75,7 +75,7 @@ class WheelBuilder(AbsWheelBuilder):
     _raw_dir: str = "/output/raw_wheels"
     _repaired_dir = "/output/repaired_wheels"
 
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         builder: Container,
         host_directory: Directory,
@@ -122,7 +122,6 @@ class WheelBuilder(AbsWheelBuilder):
             .with_env_variable(
                 "FAISS_ENABLE_RAFT", "ON" if self._build_config["enable_raft"] else ""
             )
-            .with_exec(["git", "apply", "patch/modify-long-type.patch"])
             .with_exec(["mkdir", "-p", self._raw_dir, self._repaired_dir])
         )
 

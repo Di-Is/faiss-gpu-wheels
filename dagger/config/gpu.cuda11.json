@@ -1,7 +1,6 @@
 {
     "python": {
         "support_versions": [
-            "3.8",
             "3.9",
             "3.10",
             "3.11",
@@ -26,7 +25,7 @@
         "dynamic_link": true
     },
     "build": {
-        "njob": "8",
+        "njob": "32",
         "parallel_wheel_build": true,
         "instruction_set": "generic",
         "enable_gpu": true,

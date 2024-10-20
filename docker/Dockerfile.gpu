@@ -70,10 +70,8 @@ ENV PATH="/usr/local/cuda/bin:${PATH}"
 # apply patch (assume build context is project root)
 COPY ./faiss /tmp/project/faiss
 COPY ./patch/add-gpu-install.patch /tmp/project/patch/add-gpu-install.patch
-COPY ./patch/add-template-definition.patch /tmp/project/patch/add-template-definition.patch
 WORKDIR /tmp/project
 RUN git apply patch/add-gpu-install.patch
-RUN git apply patch/add-template-definition.patch
 
 ARG FAISS_OPT_LEVEL="generic"
 ARG FAISS_ENABLE_GPU="ON"
