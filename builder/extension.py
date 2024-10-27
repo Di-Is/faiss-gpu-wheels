@@ -14,7 +14,6 @@ from setuptools import Extension
 
 from .config import Config, GPUConfig
 from .type import BuildOption, BuildType, InstructionSet
-from .util import get_project_root
 
 
 class IncludesFactory:
@@ -40,11 +39,9 @@ class IncludesFactory:
     def _generate_cpu(cls) -> list[str]:
         import numpy as np
 
-        project_root = get_project_root()
-
         return [
             np.get_include(),
-            str(Path(project_root) / "faiss"),
+            str(Path("faiss")),
             str(Path(Config().faiss_home) / "include"),
         ]
 
@@ -133,14 +130,14 @@ class ExtentionFactory:
         else:
             raise ValueError
 
-        root = str(Path(get_project_root()) / "faiss" / "faiss" / "python")
+        root = Path("faiss") / "faiss" / "python"
         return Extension(
             language="c++",
             sources=[
-                str(Path(root) / "swigfaiss.i"),
-                str(Path(root) / "python_callbacks.cpp"),
+                str(root / "swigfaiss.i"),
+                str(root / "python_callbacks.cpp"),
             ],
-            depends=[str(Path(root) / "python_callbacks.h")],
+            depends=[str(root / "python_callbacks.h")],
             define_macros=[("FINTEGER", "int")],
             include_dirs=IncludesFactory.generate(build_type),
             library_dirs=LibrariesFactory.generate(build_type),

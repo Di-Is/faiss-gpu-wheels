@@ -18,9 +18,6 @@ from .type import BuildType, InstructionSet
 class Config:
     """Basic Config."""
 
-    # faiss root relative path
-    faiss_root: str = "faiss"
-
     @property
     def faiss_home(self) -> str:
         """Faiss install directory.

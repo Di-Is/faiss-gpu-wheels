@@ -16,7 +16,6 @@ from pathlib import Path
 from .config import Config, GPUConfig
 from .faiss.shared_library_preloader import PackageFileSearchArg
 from .type import BuildType
-from .util import get_project_root
 
 
 class Preprocess:
@@ -41,11 +40,9 @@ class CommonPreProcess:
     @classmethod
     def execute(cls) -> None:
         """Execute preprocess."""
-        cfg = Config()
-        root = get_project_root()
         shutil.copy(
-            str(Path(root) / cfg.faiss_root / "faiss" / "python" / "swigfaiss.swig"),
-            str(Path(root) / cfg.faiss_root / "faiss" / "python" / "swigfaiss.i"),
+            str(Path("faiss") / "faiss" / "python" / "swigfaiss.swig"),
+            str(Path("faiss") / "faiss" / "python" / "swigfaiss.i"),
         )
 
 
@@ -76,16 +73,10 @@ class GPUPreProcess:
     @classmethod
     def _write_preload_shared_libraries_file(cls) -> None:
         """Write preloading shared libs json in faiss package."""
-        root = get_project_root()
-        cfg = Config()
         gpu_cfg = GPUConfig()
 
         json_path = (
-            Path(root)
-            / cfg.faiss_root
-            / "faiss"
-            / "python"
-            / cls.preload_shared_libraries_file
+            Path("faiss") / "faiss" / "python" / cls.preload_shared_libraries_file
         )
 
         # write preload target shared libraries json to faiss python package directory
@@ -123,11 +114,7 @@ import faiss.shared_library_preload_trigger
 ###################################################
 
 '''
-        root = get_project_root()
-        cfg = Config()
-        loader_path = str(
-            Path(root) / cfg.faiss_root / "faiss" / "python" / "loader.py"
-        )
+        loader_path = str(Path("faiss") / "faiss" / "python" / "loader.py")
         back_path = loader_path.replace("loader.py", "loader.py.original")
 
         if Path(back_path).exists():
@@ -145,9 +132,7 @@ import faiss.shared_library_preload_trigger
         cfg = Config()
 
         for src_path in (Path(__file__).parent / "faiss").glob("*.py"):
-            dest_path = str(
-                Path(get_project_root()) / cfg.faiss_root / "faiss" / "python"
-            )
+            dest_path = str(Path("faiss") / "faiss" / "python")
             shutil.copy(src_path, dest_path)
 
 
