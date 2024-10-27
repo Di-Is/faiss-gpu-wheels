@@ -129,8 +129,6 @@ import faiss.shared_library_preload_trigger
     @classmethod
     def _copy_shared_library_preloader(cls) -> None:
         """Copy shared library preloader to faiss package."""
-        cfg = Config()
-
         for src_path in (Path(__file__).parent / "faiss").glob("*.py"):
             dest_path = str(Path("faiss") / "faiss" / "python")
             shutil.copy(src_path, dest_path)
