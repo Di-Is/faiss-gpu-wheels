@@ -17,7 +17,6 @@ from setuptools.command.build_py import build_py
 from .config import Config, GPUConfig
 from .extension import ExtensionsFactory
 from .type import BuildType
-from .util import get_project_root
 
 if TYPE_CHECKING:
     from setuptools import Extension
@@ -67,7 +66,7 @@ class PackageInfo:
         Returns:
             package version
         """
-        version_path = Path(get_project_root()) / "version.txt"
+        version_path = Path("version.txt")
         with version_path.open("r") as f:
             return f.read()
 
@@ -125,11 +124,10 @@ class PackageInfo:
         Returns:
             packaging directories path
         """
-        faiss_root = Path(get_project_root()) / "faiss"
         return {
-            "faiss": str(faiss_root / "faiss" / "python"),
-            "faiss.contrib": str(faiss_root / "contrib"),
-            "faiss.contrib.torch": str(faiss_root / "contrib" / "torch"),
+            "faiss": str(Path("faiss") / "faiss" / "python"),
+            "faiss.contrib": str(Path("faiss") / "contrib"),
+            "faiss.contrib.torch": str(Path("faiss") / "contrib" / "torch"),
         }
 
     @property
@@ -169,7 +167,7 @@ class PackageInfo:
         Returns:
             package long description
         """
-        readme_path = Path(get_project_root()) / "README.md"
+        readme_path = Path("README.md")
         with readme_path.open("r") as f:
             return f.read()
 
