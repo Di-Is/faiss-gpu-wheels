@@ -125,7 +125,7 @@ When executed, a wheel is created under "{repository root}/wheelhouse/gpu/cuXX".
 **Requirements**
 * OS: Linux
   * arch: x86_64
-* Dagger: v0.13.5
+* Dagger: v0.13.6
 
 ### Test wheels
 
@@ -143,7 +143,7 @@ _EXPERIMENTAL_DAGGER_GPU_SUPPORT=1 dagger call test-gpu-wheels --cuda-major-vers
 **Requirements**
 * OS: Linux
   * arch: x86_64
-* Dagger: v0.13.5
+* Dagger: v0.13.6
 * Nvidia container toolkit
 * Nvidia driver: >=R530
 
@@ -160,6 +160,6 @@ _EXPERIMENTAL_DAGGER_GPU_SUPPORT=1 dagger call faiss-gpu-ci --cuda-major-version
 **Requirements**
 * OS: Linux
   * arch: x86_64
-* Dagger: v0.13.5
+* Dagger: v0.13.6
 * Nvidia container toolkit
 * Nvidia driver: >=R530

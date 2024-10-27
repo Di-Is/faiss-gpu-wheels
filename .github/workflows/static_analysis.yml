@@ -5,7 +5,7 @@ on:
   pull_request:
 
 env:
-  DAGGER_VERSION: 0.13.5
+  DAGGER_VERSION: 0.13.6
 
 jobs:
   format:
