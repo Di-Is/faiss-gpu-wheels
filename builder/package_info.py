@@ -31,7 +31,7 @@ class PackageInfo:
     )
     url: str = "https://github.com/Di-Is/faiss-gpu-wheels"
     author: str = "Di-Is"
-    author_email: str = "rhoxbox@gmail.com@gmail.com"
+    author_email: str = "rhoxbox@gmail.com"
     license: str = "MIT License"
     keywords: str = "search nearest neighbors"
     long_description_content_type: str = "text/markdown"
