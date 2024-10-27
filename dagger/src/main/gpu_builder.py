@@ -237,15 +237,13 @@ class WheelName:
             repaired wheel name
         """
         python_version = "cp" + python_version.replace(".", "")
-        if self._auditwheel_policy == "manlylinux2014":
+        if self._auditwheel_policy == "manylinux2014":
             name_parts = [
                 f"faiss_gpu_cu{self._cuda_major_version}",
                 self._faiss_version,
                 python_version,
                 python_version,
-                "manylinux_2_17",
-                self._arch,
-                f"{self._auditwheel_policy}_{self._arch}",
+                f"manylinux_2_17_{self._arch}.{self._auditwheel_policy}_{self._arch}",
             ]
         elif self._auditwheel_policy == "manylinux_2_28":
             name_parts = [
