@@ -172,22 +172,13 @@ class PackageInfo:
             return f.read()
 
     @property
-    def include_package_data(self) -> bool:
-        """Whether to package all non .py files.
-
-        Returns:
-            Whether to package all non .py files
-        """
-        return False
-
-    @property
     def package_data(self) -> dict[str, list[str]]:
         """Data included in package.
 
         Returns:
             data included in package
         """
-        return {"": ["*.i", "*.h", "PRELOAD_SHARED_LIBRARIES.json"]}
+        return {"": ["PRELOAD_SHARED_LIBRARIES.json"]}
 
     @property
     def ext_modules(self) -> list[Extension]:
