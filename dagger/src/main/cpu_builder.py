@@ -29,7 +29,7 @@ class ImageBuilder:
         build_config: BuildConfig,
         auditwheel_config: AuditWheelConfig,
     ) -> None:
-        """constractor.
+        """constructor.
 
         Args:
             client: dagger client
