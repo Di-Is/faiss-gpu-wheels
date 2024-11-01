@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 
 class PackageInfo:
-    """Package infomation."""
+    """Package information."""
 
     description: str = (
         "A library for efficient similarity search and clustering of dense vectors."
@@ -149,7 +149,7 @@ class PackageInfo:
             f"Programming Language :: Python :: {ver}"
             for ver in cfg.python_support_versions
         ]
-        # Add CUDA infomation
+        # Add CUDA information
         if cfg.build_type in [BuildType.GPU, BuildType.RAFT]:
             gpu_cfg = GPUConfig()
             classifiers.append("Environment :: GPU :: NVIDIA CUDA")

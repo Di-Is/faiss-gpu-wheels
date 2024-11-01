@@ -47,7 +47,7 @@ def search_install_file_path(package_name: str, filename_regex: str) -> str:
 
 def load_shared_library(file_search_target: PackageFileSearchArg) -> None:
     """Global load shared libraries."""
-    logger.debug("Try to load shared library in pakcage.", extra=file_search_target)
+    logger.debug("Try to load shared library in package.", extra=file_search_target)
     path = search_install_file_path(
         file_search_target["package_name"], file_search_target["filename_regex"]
     )

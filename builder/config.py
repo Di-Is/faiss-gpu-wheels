@@ -29,10 +29,10 @@ class Config:
 
     @property
     def python_support_versions(self) -> list[str]:
-        """Serve suport python versions.
+        """Serve support python versions.
 
         Returns:
-            serve suport python versions
+            serve support python versions
         """
         return os.getenv("PYTHON_SUPPORT_VERSIONS", "3.8;3.9;3.10;3.11;3.12").split(";")
 

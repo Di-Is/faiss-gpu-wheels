@@ -43,7 +43,7 @@ class FaissWheels:
         """Linting code.
 
         Args:
-            source: source directry
+            source: source directory
 
         Returns:
             stdout at runtime
@@ -59,10 +59,10 @@ class FaissWheels:
 
     @function
     async def format(self, source: dagger.Directory) -> str:
-        """Formating code.
+        """Formatting code.
 
         Args:
-            source: source directry
+            source: source directory
 
         Returns:
             stdout at runtime
@@ -361,7 +361,7 @@ class FaissWheels:
         Args:
             wheel_builder: concrete class of AbsWheelBuilder
             python_versions: build target python versions
-            parallel: flag of paralell wheel building. Defaults to False.
+            parallel: flag of parallel wheel building. Defaults to False.
 
         Returns:
             _description_
@@ -432,7 +432,7 @@ def _expand_test_config(cfg: dict) -> dict:
         cfg: config dict
 
     Returns:
-        expaned condig dict
+        expand config dict
     """
     cfg_test = {}
     for name, val in cfg["test"].items():

@@ -106,7 +106,7 @@ class SwigOptions:
         return swig_opts
 
 
-class ExtentionFactory:
+class ExtensionFactory:
     """Extension factory."""
 
     @staticmethod
@@ -257,7 +257,7 @@ class ExtensionsFactory:
         Returns:
             Extension object list
         """
-        generate = ExtentionFactory.generate
+        generate = ExtensionFactory.generate
 
         extensions = [generate(platform, InstructionSet.GENERIC, build_type)]
         if instruction_set in [InstructionSet.AVX2, InstructionSet.AVX512]:
