@@ -4,14 +4,17 @@ on:
   workflow_call:
   pull_request:
 
-env:
-  DAGGER_VERSION: 0.13.6
-
 jobs:
-  format:
+  static-analysis:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
+      - name: get engineVersion
+        id: get_engine_version
+        run: |
+          engine_version=$(jq -r '.engineVersion' dagger.json)
+          echo "engine_version=${engine_version}" >> $GITHUB_ENV
 
       - name: format
         uses: dagger/dagger-for-github@v5
@@ -19,12 +22,7 @@ jobs:
           verb: call
           args: "format --source ."
           cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
-          version: ${DAGGER_VERSION}
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+          version: ${{ env.engine_version }}
 
       - name: lint
         uses: dagger/dagger-for-github@v5
@@ -32,4 +30,4 @@ jobs:
           verb: call
           args: "lint --source ."
           cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
-          version: ${DAGGER_VERSION}
+          version: ${{ env.engine_version }}
