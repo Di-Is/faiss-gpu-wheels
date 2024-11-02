@@ -9,7 +9,6 @@ http://opensource.org/licenses/mit-license.php
 from __future__ import annotations
 
 import json
-import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -18,13 +17,11 @@ from anyio.from_thread import start_blocking_portal
 import dagger
 import main.test
 from dagger import dag, function, object_type
-from dagger.log import configure_logging
 from main import cpu_builder, gpu_builder
 
 if TYPE_CHECKING:
     from main.builder import AbsWheelBuilder
 
-configure_logging(logging.DEBUG)
 
 DAGGER_ROOT = Path(__file__).parent.parent.parent
 
