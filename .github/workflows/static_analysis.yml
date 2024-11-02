@@ -31,3 +31,11 @@ jobs:
           args: "lint --source ."
           cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
           version: ${{ env.engine_version }}
+
+      - name: check typo
+        uses: dagger/dagger-for-github@v5
+        with:
+          verb: call
+          args: "check-typo --source ."
+          cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
+          version: ${{ env.engine_version }}
