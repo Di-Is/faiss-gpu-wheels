@@ -104,9 +104,6 @@ class FaissWheels:
 
         Args:
             source: source directory
-
-        Returns:
-            stdout at runtime
         """
         await self.lint(source)
         await self.format(source)
