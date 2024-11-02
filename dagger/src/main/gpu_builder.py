@@ -6,17 +6,13 @@ This software is released under the MIT License.
 http://opensource.org/licenses/mit-license.php
 """
 
-import logging
 from pathlib import Path
 
 from dagger import BuildArg, Container, Directory, File
 from dagger.client.gen import Client
-from dagger.log import configure_logging
 
 from .builder import AbsWheelBuilder
 from .type import AuditWheelConfig, BuildConfig, CUDAConfig, PythonConfig
-
-configure_logging(logging.DEBUG)
 
 
 class ImageBuilder:
