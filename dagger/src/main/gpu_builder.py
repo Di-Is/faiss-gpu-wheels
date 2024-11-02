@@ -58,14 +58,6 @@ class ImageBuilder:
                 BuildArg("CUDA_ARCHITECTURES", self._cuda_config["architectures"]),
                 BuildArg("BUILD_NJOB", self._build_config["njob"]),
                 BuildArg("FAISS_OPT_LEVEL", self._build_config["instruction_set"]),
-                BuildArg(
-                    "FAISS_ENABLE_GPU",
-                    "ON" if self._build_config["enable_gpu"] else "OFF",
-                ),
-                BuildArg(
-                    "FAISS_ENABLE_RAFT",
-                    "ON" if self._build_config["enable_raft"] else "OFF",
-                ),
                 BuildArg("AUDITWHEEL_POLICY", self._auditwheel_config["policy"]),
             ],
         )
@@ -133,12 +125,8 @@ class WheelBuilder(AbsWheelBuilder):
                 ";".join(self._python_config["support_versions"]),
             )
             .with_env_variable("FAISS_OPT_LEVEL", self._build_config["instruction_set"])
-            .with_env_variable(
-                "FAISS_ENABLE_GPU", "ON" if self._build_config["enable_gpu"] else ""
-            )
-            .with_env_variable(
-                "FAISS_ENABLE_RAFT", "ON" if self._build_config["enable_raft"] else ""
-            )
+            .with_env_variable("FAISS_ENABLE_GPU", "ON")
+            .with_env_variable("FAISS_ENABLE_RAFT", "OFF")
             .with_exec(["mkdir", "-p", self._raw_dir, self._repaired_dir])
         )
 

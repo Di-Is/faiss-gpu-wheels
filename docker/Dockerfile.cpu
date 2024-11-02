@@ -1,5 +1,3 @@
-
-
 ##################################################
 # Dockerfike for faiss-cpu
 # Copyright (c) 2024 Di-Is
@@ -31,14 +29,12 @@ COPY ./faiss /tmp/project/faiss
 WORKDIR /tmp/project
 
 ARG FAISS_OPT_LEVEL="generic"
-ARG FAISS_ENABLE_GPU="OFF"
-ARG FAISS_ENABLE_RAFT="OFF"
 ARG BUILD_NJOB=3
 RUN cd faiss \
  && cmake . \
        -B build \
-       -DFAISS_ENABLE_GPU=${FAISS_ENABLE_GPU} \
-       -DFAISS_ENABLE_RAFT=${FAISS_ENABLE_RAFT} \
+       -DFAISS_ENABLE_GPU="OFF" \
+       -DFAISS_ENABLE_RAFT="OFF" \
        -DFAISS_ENABLE_PYTHON=OFF \
        -DBUILD_TESTING=OFF \
        -DFAISS_OPT_LEVEL=${FAISS_OPT_LEVEL} \
