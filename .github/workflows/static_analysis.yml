@@ -16,26 +16,10 @@ jobs:
           engine_version=$(jq -r '.engineVersion' dagger.json)
           echo "engine_version=${engine_version}" >> $GITHUB_ENV
 
-      - name: format
+      - name: static analysis
         uses: dagger/dagger-for-github@v5
         with:
           verb: call
-          args: "format --source ."
-          cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
-          version: ${{ env.engine_version }}
-
-      - name: lint
-        uses: dagger/dagger-for-github@v5
-        with:
-          verb: call
-          args: "lint --source ."
-          cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
-          version: ${{ env.engine_version }}
-
-      - name: check typo
-        uses: dagger/dagger-for-github@v5
-        with:
-          verb: call
-          args: "check-typo --source ."
+          args: "static-analysis --source ."
           cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
           version: ${{ env.engine_version }}

@@ -99,6 +99,17 @@ class FaissWheels:
         return await container.stdout()
 
     @function
+    async def static_analysis(self, source: dagger.Directory) -> None:
+        """Execute static analysis.
+
+        Args:
+            source: source directory
+        """
+        await self.lint(source)
+        await self.format(source)
+        await self.check_typo(source)
+
+    @function
     async def faiss_cpu_ci(self, host_directory: dagger.Directory) -> dagger.Directory:
         """faiss-cpu ci pipeline.
 
