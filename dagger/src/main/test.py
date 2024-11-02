@@ -6,7 +6,7 @@ This software is released under the MIT License.
 http://opensource.org/licenses/mit-license.php
 """
 
-from dagger import Container, dag
+from dagger import Container
 
 
 async def test_import(container: Container) -> str:
@@ -88,22 +88,3 @@ async def test_gpu_torch_contlib(container: Container) -> str:
         ],
     ).with_exec(["pytest", "-s", "./faiss/faiss/gpu/test/torch_test_contrib_gpu.py"])
     return await container.stdout()
-
-
-async def install_uv(container: Container, uv_version: str) -> Container:
-    """Install uv to container.
-
-    Args:
-        container: container
-        uv_version: install target uv version
-
-    Returns:
-        uv installed container
-    """
-    # get uv from official docker image
-    uv_bin = dag.container().from_(f"ghcr.io/astral-sh/uv:{uv_version}").file("/uv")
-
-    # install uv
-    container = container.with_file("/usr/local/bin/uv", uv_bin)
-
-    return await container.sync()

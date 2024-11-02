@@ -111,13 +111,12 @@ class WheelBuilder(AbsWheelBuilder):
 
         builder = builder.with_exec(
             [
+                "uv",
+                "build",
+                "--wheel",
+                "--python",
                 f"python{python_target_version}",
-                "-m",
-                "pip",
-                "wheel",
-                ".",
-                "--no-deps",
-                "-w",
+                "--out-dir",
                 self._raw_dir,
             ]
         )

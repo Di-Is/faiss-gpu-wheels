@@ -19,6 +19,8 @@ import main.test
 from dagger import dag, function, object_type
 from main import cpu_builder, gpu_builder
 
+from .util import install_uv
+
 if TYPE_CHECKING:
     from main.builder import AbsWheelBuilder
 
@@ -184,7 +186,11 @@ class FaissWheels:
         """
         cfg = self._load_cpu_config()
 
-        container = await self.build_cpu_container(host_directory)
+        container = (
+            await install_uv(
+                await self.build_cpu_container(host_directory), self._uv_version
+            )
+        ).with_env_variable("UV_PYTHON_PREFERENCE", "only-system")
 
         # make wheel
         wheel_builder = cpu_builder.WheelBuilder(
@@ -246,7 +252,12 @@ class FaissWheels:
             directory included faiss-gpu wheels
         """
         # build image for faiss-gpu wheel building
-        container = await self.build_gpu_container(host_directory, cuda_major_version)
+        container = (
+            await install_uv(
+                await self.build_gpu_container(host_directory, cuda_major_version),
+                self._uv_version,
+            )
+        ).with_env_variable("UV_PYTHON_PREFERENCE", "only-system")
 
         # build wheel
         cfg = self._load_gpu_config(cuda_major_version)
@@ -294,7 +305,7 @@ class FaissWheels:
             container = (
                 dag.container().from_(test_cfg["image"]).experimental_with_gpu(["0"])
             )
-            container = await main.test.install_uv(container, self._uv_version)
+            container = await install_uv(container, self._uv_version)
             await container.sync()
 
             whl_name = whlname_maker.make_repaired_wheelname(
@@ -346,7 +357,7 @@ class FaissWheels:
 
         for test_cfg in cfg["test"].values():
             container = dag.container().from_(test_cfg["image"])
-            container = await main.test.install_uv(container, self._uv_version)
+            container = await install_uv(container, self._uv_version)
             await container.sync()
 
             whl_name = whlname_maker.make_repaired_wheelname(
