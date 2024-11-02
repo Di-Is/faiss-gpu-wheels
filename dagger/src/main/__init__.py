@@ -50,10 +50,11 @@ class FaissWheels:
         """
         container = (
             dag.container()
-            .from_(f"ghcr.io/astral-sh/ruff:{self.ruff_version}")
+            .from_(f"ghcr.io/astral-sh/uv:{self._uv_version}-debian-slim")
+            .with_mounted_cache("/root/.cache/uv", self.uv_cache)
             .with_directory("/project", source)
             .with_workdir("/project")
-            .with_exec(["/ruff", "check", "."])
+            .with_exec(["uvx", f"ruff@{self.ruff_version}", "check", "."])
         )
         return await container.stdout()
 
@@ -69,10 +70,31 @@ class FaissWheels:
         """
         container = (
             dag.container()
-            .from_(f"ghcr.io/astral-sh/ruff:{self.ruff_version}")
+            .from_(f"ghcr.io/astral-sh/uv:{self._uv_version}-debian-slim")
+            .with_mounted_cache("/root/.cache/uv", self.uv_cache)
             .with_directory("/project", source)
             .with_workdir("/project")
-            .with_exec(["/ruff", "format", ".", "--diff"])
+            .with_exec(["uvx", f"ruff@{self.ruff_version}", "format", ".", "--diff"])
+        )
+        return await container.stdout()
+
+    @function
+    async def check_typo(self, source: dagger.Directory) -> str:
+        """Checking typo.
+
+        Args:
+            source: source directory
+
+        Returns:
+            stdout at runtime
+        """
+        container = (
+            dag.container()
+            .from_(f"ghcr.io/astral-sh/uv:{self._uv_version}-debian-slim")
+            .with_mounted_cache("/root/.cache/uv", self.uv_cache)
+            .with_directory("/project", source)
+            .with_workdir("/project")
+            .with_exec(["uvx", "typos", "."])
         )
         return await container.stdout()
 
