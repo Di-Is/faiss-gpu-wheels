@@ -11,7 +11,11 @@
 # http://opensource.org/licenses/mit-license.php
 
 [build-system]
-requires = ["setuptools", "oldest-supported-numpy"]
+requires = [
+    "setuptools",
+    "oldest-supported-numpy",
+    "builder @ file://${PROJECT_ROOT}/builder",
+]
 build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
