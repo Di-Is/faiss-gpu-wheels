@@ -37,6 +37,4 @@ class BuildConfig(TypedDict):
     """Faiss build config."""
 
     instruction_set: str
-    enable_gpu: bool
-    enable_raft: bool
     njob: int

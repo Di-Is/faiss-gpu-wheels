@@ -27,9 +27,7 @@
     "build": {
         "njob": "32",
         "parallel_wheel_build": true,
-        "instruction_set": "generic",
-        "enable_gpu": true,
-        "enable_raft": false
+        "instruction_set": "generic"
     },
     "test": {
         "test_cuda_library_loading_in_redhat": {
