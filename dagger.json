@@ -1,6 +1,6 @@
 {
   "name": "faiss-wheels",
-  "engineVersion": "v0.13.7",
+  "engineVersion": "v0.14.0",
   "sdk": "python",
   "source": "dagger",
   "views": [
