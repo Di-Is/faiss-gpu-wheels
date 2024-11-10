@@ -15,17 +15,17 @@ from typing import TYPE_CHECKING
 from anyio.from_thread import start_blocking_portal
 
 import dagger
-import main.test
+import faiss_wheels.test
 from dagger import dag, function, object_type
-from main import cpu_builder, gpu_builder
+from faiss_wheels import cpu_builder, gpu_builder
 
 from .util import install_uv
 
 if TYPE_CHECKING:
-    from main.builder import AbsWheelBuilder
+    from faiss_wheels.builder import AbsWheelBuilder
 
 
-DAGGER_ROOT = Path(__file__).parent.parent.parent
+DAGGER_ROOT = Path(__file__).parent.parent
 
 
 @object_type
@@ -334,7 +334,7 @@ class FaissWheels:
             await container.sync()
 
             for case_name in test_cfg["cases"]:
-                func = getattr(main.test, case_name)
+                func = getattr(faiss_wheels.test, case_name)
                 await func(container)
 
     @function
@@ -386,7 +386,7 @@ class FaissWheels:
             await container.sync()
 
             for case_name in test_cfg["cases"]:
-                func = getattr(main.test, case_name)
+                func = getattr(faiss_wheels.test, case_name)
                 await func(container)
 
     @classmethod
