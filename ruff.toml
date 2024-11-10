@@ -1,7 +1,7 @@
 line-length = 88
 indent-width = 4
 
-target-version = "py38"
+target-version = "py39"
 
 exclude = ["./faiss"]
 
