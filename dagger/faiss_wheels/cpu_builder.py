@@ -9,7 +9,6 @@ http://opensource.org/licenses/mit-license.php
 from pathlib import Path
 
 from dagger import BuildArg, Container, Directory, File
-from dagger.client.gen import Client
 
 from .builder import AbsWheelBuilder
 from .type import AuditWheelConfig, BuildConfig, PythonConfig
@@ -20,7 +19,6 @@ class ImageBuilder:
 
     def __init__(
         self,
-        client: Client,
         host_directory: Directory,
         build_config: BuildConfig,
         auditwheel_config: AuditWheelConfig,
@@ -28,12 +26,10 @@ class ImageBuilder:
         """constructor.
 
         Args:
-            client: dagger client
             host_directory: host environment directory
             build_config: _description_
             auditwheel_config: _description_
         """
-        self._client = client
         self._host_directory = host_directory
         self._build_config = build_config
         self._auditwheel_config = auditwheel_config
