@@ -162,7 +162,6 @@ class FaissWheels:
         cfg = self._load_cpu_config()
 
         container = await cpu_builder.ImageBuilder(
-            dag,
             host_directory,
             cfg["build"],
             cfg["auditwheel"],
@@ -226,7 +225,6 @@ class FaissWheels:
         cfg = self._load_gpu_config(cuda_major_version)
 
         container = await gpu_builder.ImageBuilder(
-            dag,
             host_directory,
             cfg["build"],
             cfg["auditwheel"],
