@@ -53,8 +53,6 @@ class ImageBuilder:
             build_args=[
                 BuildArg("CUDA_MAJOR_VERSION", self._cuda_config["major_version"]),
                 BuildArg("CUDA_MINOR_VERSION", self._cuda_config["minor_version"]),
-                BuildArg("CUDA_RUNTIME_VERSION", self._cuda_config["runtime_version"]),
-                BuildArg("CUDA_CUBLAS_VERSION", self._cuda_config["cublas_version"]),
                 BuildArg("CUDA_ARCHITECTURES", self._cuda_config["architectures"]),
                 BuildArg("BUILD_NJOB", self._build_config["njob"]),
                 BuildArg("FAISS_OPT_LEVEL", self._build_config["instruction_set"]),
