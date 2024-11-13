@@ -149,9 +149,7 @@ class LinuxBuildOptionFactory:
     """Linux build option generator."""
 
     @classmethod
-    def generate(
-        cls, instruction_set: InstructionSet, build_type: BuildType
-    ) -> BuildOption:
+    def generate(cls, instruction_set: InstructionSet, build_type: BuildType) -> BuildOption:
         """Generate build option for linux.
 
         Args:
@@ -187,10 +185,7 @@ class LinuxBuildOptionFactory:
         if build_type == BuildType.GPU:
             option["extra_link_args"].append("-l:libfaiss_gpu.a")
             if GPUConfig().dynamic_link:
-                option["extra_link_args"] += [
-                    "-lcublas",
-                    "-lcudart",
-                ]
+                option["extra_link_args"] += ["-lcublas", "-lcudart"]
             else:
                 option["extra_link_args"] += [
                     "-lcublas_static",
@@ -210,8 +205,7 @@ class LinuxBuildOptionFactory:
         option["name"] = "faiss._swigfaiss_avx2"
         option["extra_compile_args"] += ["-mavx2", "-mfma", "-mf16c", "-mpopcnt"]
         option["extra_link_args"] = [
-            x.replace("libfaiss.a", "libfaiss_avx2.a")
-            for x in option["extra_link_args"]
+            x.replace("libfaiss.a", "libfaiss_avx2.a") for x in option["extra_link_args"]
         ]
         option["swig_opts"] += ["-module", "swigfaiss_avx2"]
         return option
@@ -233,8 +227,7 @@ class LinuxBuildOptionFactory:
             "-mpopcnt",
         ]
         option["extra_link_args"] = [
-            x.replace("libfaiss.a", "libfaiss_avx512.a")
-            for x in option["extra_link_args"]
+            x.replace("libfaiss.a", "libfaiss_avx512.a") for x in option["extra_link_args"]
         ]
         option["swig_opts"] += ["-module", "swigfaiss_avx512"]
         return option

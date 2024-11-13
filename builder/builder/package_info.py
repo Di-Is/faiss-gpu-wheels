@@ -25,9 +25,7 @@ if TYPE_CHECKING:
 class PackageInfo:
     """Package information."""
 
-    description: str = (
-        "A library for efficient similarity search and clustering of dense vectors."
-    )
+    description: str = "A library for efficient similarity search and clustering of dense vectors."
     url: str = "https://github.com/Di-Is/faiss-gpu-wheels"
     author: str = "Di-Is"
     author_email: str = "rhoxbox@gmail.com"
@@ -146,8 +144,7 @@ class PackageInfo:
         ]
         cfg = Config()
         classifiers += [
-            f"Programming Language :: Python :: {ver}"
-            for ver in cfg.python_support_versions
+            f"Programming Language :: Python :: {ver}" for ver in cfg.python_support_versions
         ]
         # Add CUDA information
         if cfg.build_type in [BuildType.GPU, BuildType.RAFT]:
@@ -188,9 +185,7 @@ class PackageInfo:
             Package extension module.
         """
         cfg = Config()
-        return ExtensionsFactory.generate(
-            sys.platform, cfg.instruction_set, cfg.build_type
-        )
+        return ExtensionsFactory.generate(sys.platform, cfg.instruction_set, cfg.build_type)
 
     @property
     def cmdclass(self) -> dict[str, build_py]:
