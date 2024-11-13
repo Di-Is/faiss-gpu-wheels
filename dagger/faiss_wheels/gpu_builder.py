@@ -105,12 +105,8 @@ class WheelBuilder(AbsWheelBuilder):
             .with_workdir("/project")
             .with_env_variable("CUDA_MAJOR_VERSION", self._cuda_config["major_version"])
             .with_env_variable("CUDA_MINOR_VERSION", self._cuda_config["minor_version"])
-            .with_env_variable(
-                "CUDA_RUNTIME_VERSION", self._cuda_config["runtime_version"]
-            )
-            .with_env_variable(
-                "CUDA_CUBLAS_VERSION", self._cuda_config["cublas_version"]
-            )
+            .with_env_variable("CUDA_RUNTIME_VERSION", self._cuda_config["runtime_version"])
+            .with_env_variable("CUDA_CUBLAS_VERSION", self._cuda_config["cublas_version"])
             .with_env_variable(
                 "CUDA_DYNAMIC_LINK", "ON" if self._cuda_config["dynamic_link"] else ""
             )
@@ -152,10 +148,7 @@ class WheelBuilder(AbsWheelBuilder):
                 "repair",
                 "-w",
                 self._repaired_dir,
-                str(
-                    Path(self._raw_dir)
-                    / whlname_maker.make_raw_wheelname(python_target_version)
-                ),
+                str(Path(self._raw_dir) / whlname_maker.make_raw_wheelname(python_target_version)),
             ]
             + self._auditwheel_config["repair_option"]
         )

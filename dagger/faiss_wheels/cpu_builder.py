@@ -129,10 +129,7 @@ class WheelBuilder(AbsWheelBuilder):
                 "repair",
                 "-w",
                 self._repaired_dir,
-                str(
-                    Path(self._raw_dir)
-                    / whlname_maker.make_raw_wheelname(python_target_version)
-                ),
+                str(Path(self._raw_dir) / whlname_maker.make_raw_wheelname(python_target_version)),
             ]
             + self._auditwheel_config["repair_option"]
         )

@@ -148,9 +148,7 @@ class FaissWheels:
         return wheel_dir
 
     @function
-    async def build_cpu_container(
-        self, host_directory: dagger.Directory
-    ) -> dagger.Container:
+    async def build_cpu_container(self, host_directory: dagger.Directory) -> dagger.Container:
         """Build faiss-cpu build image.
 
         Args:
@@ -162,9 +160,7 @@ class FaissWheels:
         cfg = self._load_cpu_config()
 
         container = await cpu_builder.ImageBuilder(
-            host_directory,
-            cfg["build"],
-            cfg["auditwheel"],
+            host_directory, cfg["build"], cfg["auditwheel"]
         ).build()
 
         await container.sync()
@@ -186,18 +182,12 @@ class FaissWheels:
         cfg = self._load_cpu_config()
 
         container = (
-            await install_uv(
-                await self.build_cpu_container(host_directory), self._uv_version
-            )
+            await install_uv(await self.build_cpu_container(host_directory), self._uv_version)
         ).with_env_variable("UV_PYTHON_PREFERENCE", "only-system")
 
         # make wheel
         wheel_builder = cpu_builder.WheelBuilder(
-            container,
-            host_directory,
-            cfg["build"],
-            cfg["auditwheel"],
-            cfg["python"],
+            container, host_directory, cfg["build"], cfg["auditwheel"], cfg["python"]
         )
 
         wheel_files = await self._build_wheels(
@@ -225,10 +215,7 @@ class FaissWheels:
         cfg = self._load_gpu_config(cuda_major_version)
 
         container = await gpu_builder.ImageBuilder(
-            host_directory,
-            cfg["build"],
-            cfg["auditwheel"],
-            cfg["cuda"],
+            host_directory, cfg["build"], cfg["auditwheel"], cfg["cuda"]
         ).build()
 
         await container.sync()
@@ -260,12 +247,7 @@ class FaissWheels:
         # build wheel
         cfg = self._load_gpu_config(cuda_major_version)
         wheel_builder = gpu_builder.WheelBuilder(
-            container,
-            host_directory,
-            cfg["build"],
-            cfg["auditwheel"],
-            cfg["python"],
-            cfg["cuda"],
+            container, host_directory, cfg["build"], cfg["auditwheel"], cfg["python"], cfg["cuda"]
         )
         wheel_files = await self._build_wheels(
             wheel_builder,
@@ -300,15 +282,11 @@ class FaissWheels:
         )
 
         for test_cfg in cfg["test"].values():
-            container = (
-                dag.container().from_(test_cfg["image"]).experimental_with_gpu(["0"])
-            )
+            container = dag.container().from_(test_cfg["image"]).experimental_with_gpu(["0"])
             container = await install_uv(container, self._uv_version)
             await container.sync()
 
-            whl_name = whlname_maker.make_repaired_wheelname(
-                test_cfg["target_python_version"]
-            )
+            whl_name = whlname_maker.make_repaired_wheelname(test_cfg["target_python_version"])
 
             container = (
                 container.with_directory("/project", host_directory)
@@ -319,12 +297,7 @@ class FaissWheels:
                 .with_env_variable("UV_HTTP_TIMEOUT", "10000000")
                 .with_mounted_cache("/root/.cache/uv", self.uv_cache)
                 .with_exec(
-                    [
-                        "uv",
-                        "pip",
-                        "install",
-                        f"wheelhouse/{whl_name}[fix-cuda]",
-                    ]
+                    ["uv", "pip", "install", f"wheelhouse/{whl_name}[fix-cuda]"]
                     + test_cfg["requires"]
                 )
                 .with_env_variable("OMP_NUM_THREADS", "1")
@@ -358,9 +331,7 @@ class FaissWheels:
             container = await install_uv(container, self._uv_version)
             await container.sync()
 
-            whl_name = whlname_maker.make_repaired_wheelname(
-                test_cfg["target_python_version"]
-            )
+            whl_name = whlname_maker.make_repaired_wheelname(test_cfg["target_python_version"])
 
             container = (
                 container.with_directory("/project", host_directory)
@@ -371,13 +342,7 @@ class FaissWheels:
                 .with_env_variable("UV_HTTP_TIMEOUT", "10000000")
                 .with_mounted_cache("/root/.cache/uv", self.uv_cache)
                 .with_exec(
-                    [
-                        "uv",
-                        "pip",
-                        "install",
-                        f"wheelhouse/{whl_name}",
-                    ]
-                    + test_cfg["requires"]
+                    ["uv", "pip", "install", f"wheelhouse/{whl_name}"] + test_cfg["requires"]
                 )
                 .with_env_variable("OMP_NUM_THREADS", "1")
             )
@@ -408,9 +373,7 @@ class FaissWheels:
         if parallel:
             with start_blocking_portal() as tg:
                 results = [
-                    tg.start_task_soon(
-                        cls._build_wheel_specific_python, wheel_builder, py_ver
-                    )
+                    tg.start_task_soon(cls._build_wheel_specific_python, wheel_builder, py_ver)
                     for py_ver in python_versions
                 ]
                 wheel_files = [f.result() for f in results]

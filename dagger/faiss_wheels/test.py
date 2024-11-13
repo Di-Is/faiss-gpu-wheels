@@ -31,9 +31,7 @@ async def test_cpu(container: Container) -> str:
     Returns:
         output string during test
     """
-    container = container.with_exec(
-        ["pytest", "./faiss/tests"],
-    )
+    container = container.with_exec(["pytest", "./faiss/tests"])
     return await container.stdout()
 
 
@@ -46,9 +44,7 @@ async def test_cpu_torch_contlib(container: Container) -> str:
     Returns:
         output string during test
     """
-    container = container.with_exec(
-        ["pytest", "-s", "./faiss/tests/torch_test_contrib.py"],
-    )
+    container = container.with_exec(["pytest", "-s", "./faiss/tests/torch_test_contrib.py"])
     return await container.stdout()
 
 
@@ -62,11 +58,7 @@ async def test_gpu(container: Container) -> str:
         output string during test
     """
     container = container.with_exec(
-        [
-            "cp",
-            "./faiss/tests/common_faiss_tests.py",
-            "./faiss/faiss/gpu/test/",
-        ],
+        ["cp", "./faiss/tests/common_faiss_tests.py", "./faiss/faiss/gpu/test/"],
     ).with_exec(["pytest", "./faiss/faiss/gpu/test"])
     return await container.stdout()
 
@@ -81,10 +73,6 @@ async def test_gpu_torch_contlib(container: Container) -> str:
         output string during test
     """
     container = container.with_exec(
-        [
-            "cp",
-            "./faiss/tests/common_faiss_tests.py",
-            "./faiss/faiss/gpu/test/",
-        ],
+        ["cp", "./faiss/tests/common_faiss_tests.py", "./faiss/faiss/gpu/test/"],
     ).with_exec(["pytest", "-s", "./faiss/faiss/gpu/test/torch_test_contrib_gpu.py"])
     return await container.stdout()

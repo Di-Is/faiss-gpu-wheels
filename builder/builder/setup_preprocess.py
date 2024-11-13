@@ -75,9 +75,7 @@ class GPUPreProcess:
         """Write preloading shared libs json in faiss package."""
         gpu_cfg = GPUConfig()
 
-        json_path = (
-            Path("faiss") / "faiss" / "python" / cls.preload_shared_libraries_file
-        )
+        json_path = Path("faiss") / "faiss" / "python" / cls.preload_shared_libraries_file
 
         # write preload target shared libraries json to faiss python package directory
         with json_path.open("w") as f:
