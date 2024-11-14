@@ -274,39 +274,32 @@ class FaissWheels:
         cfg = self._load_gpu_config(cuda_major_version)
         cfg = _expand_test_config(cfg)
 
-        faiss_ver = await host_directory.file("version.txt").contents()
-        faiss_ver = faiss_ver.replace("\n", "")
-
-        whlname_maker = gpu_builder.WheelName(
-            faiss_ver, cfg["auditwheel"]["policy"], cfg["cuda"]["major_version"]
-        )
-
         for test_cfg in cfg["test"].values():
-            container = dag.container().from_(test_cfg["image"]).experimental_with_gpu(["0"])
-            container = await install_uv(container, self._uv_version)
-            await container.sync()
+            ctr = await install_uv(
+                dag.container().from_(test_cfg["image"]).experimental_with_gpu(["0"]),
+                self._uv_version,
+            )
+            py = "cp" + test_cfg["target_python_version"].replace(".", "")
+            wheel_name = (await wheel_directory.glob(f"*{py}*.whl"))[0]
+            wheel = wheel_directory.file(wheel_name)
 
-            whl_name = whlname_maker.make_repaired_wheelname(test_cfg["target_python_version"])
-
-            container = (
-                container.with_directory("/project", host_directory)
+            ctr = (
+                ctr.with_directory("/project", host_directory)
                 .with_workdir("project")
-                .with_mounted_directory("wheelhouse", wheel_directory)
+                .with_mounted_file(wheel_name, wheel)
                 .with_env_variable("UV_CACHE_DIR", "/root/.cache/uv")
                 .with_env_variable("UV_SYSTEM_PYTHON", "true")
                 .with_env_variable("UV_HTTP_TIMEOUT", "10000000")
                 .with_mounted_cache("/root/.cache/uv", self.uv_cache)
                 .with_exec(
-                    ["uv", "pip", "install", f"wheelhouse/{whl_name}[fix-cuda]"]
-                    + test_cfg["requires"]
+                    ["uv", "pip", "install", f"{wheel_name}[fix-cuda]"] + test_cfg["requires"]
                 )
                 .with_env_variable("OMP_NUM_THREADS", "1")
             )
-            await container.sync()
 
             for case_name in test_cfg["cases"]:
                 func = getattr(faiss_wheels.test, case_name)
-                await func(container)
+                await func(ctr)
 
     @function
     async def test_cpu_wheels(
@@ -321,44 +314,31 @@ class FaissWheels:
         cfg = self._load_cpu_config()
         cfg = _expand_test_config(cfg)
 
-        faiss_ver = await host_directory.file("version.txt").contents()
-        faiss_ver = faiss_ver.replace("\n", "")
-
-        whlname_maker = cpu_builder.WheelName(faiss_ver, cfg["auditwheel"]["policy"])
-
         for test_cfg in cfg["test"].values():
-            container = dag.container().from_(test_cfg["image"])
-            container = await install_uv(container, self._uv_version)
-            await container.sync()
+            ctr = await install_uv(dag.container().from_(test_cfg["image"]), self._uv_version)
+            py = "cp" + test_cfg["target_python_version"].replace(".", "")
+            wheel_name = (await wheel_directory.glob(f"*{py}*.whl"))[0]
+            wheel = wheel_directory.file(wheel_name)
 
-            whl_name = whlname_maker.make_repaired_wheelname(test_cfg["target_python_version"])
-
-            container = (
-                container.with_directory("/project", host_directory)
+            ctr = (
+                ctr.with_directory("/project", host_directory)
                 .with_workdir("project")
-                .with_mounted_directory("wheelhouse", wheel_directory)
+                .with_mounted_file(wheel_name, wheel)
                 .with_env_variable("UV_CACHE_DIR", "/root/.cache/uv")
                 .with_env_variable("UV_SYSTEM_PYTHON", "true")
                 .with_env_variable("UV_HTTP_TIMEOUT", "10000000")
                 .with_mounted_cache("/root/.cache/uv", self.uv_cache)
-                .with_exec(
-                    ["uv", "pip", "install", f"wheelhouse/{whl_name}"] + test_cfg["requires"]
-                )
+                .with_exec(["uv", "pip", "install", wheel_name] + test_cfg["requires"])
                 .with_env_variable("OMP_NUM_THREADS", "1")
             )
-            await container.sync()
 
             for case_name in test_cfg["cases"]:
                 func = getattr(faiss_wheels.test, case_name)
-                await func(container)
+                await func(ctr)
 
     @classmethod
     async def _build_wheels(
-        cls,
-        wheel_builder: AbsWheelBuilder,
-        python_versions: list[str],
-        *,
-        parallel: bool = False,
+        cls, wheel_builder: AbsWheelBuilder, python_versions: list[str], *, parallel: bool = False
     ) -> list[dagger.File]:
         """Build wheel.
 
