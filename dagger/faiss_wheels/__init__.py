@@ -19,6 +19,7 @@ import faiss_wheels.test
 from dagger import dag, function, object_type
 from faiss_wheels import cpu_builder, gpu_builder
 
+from ._static_analysis import static_analysis
 from ._util import UV_CACHE, UV_VERSION, install_uv
 
 if TYPE_CHECKING:
@@ -35,75 +36,13 @@ class FaissWheels:
     ruff_version = "0.7.0"
 
     @function
-    async def lint(self, source: dagger.Directory) -> str:
-        """Linting code.
-
-        Args:
-            source: source directory
-
-        Returns:
-            stdout at runtime
-        """
-        container = (
-            dag.container()
-            .from_(f"ghcr.io/astral-sh/uv:{UV_VERSION}-debian-slim")
-            .with_mounted_cache("/root/.cache/uv", UV_CACHE)
-            .with_directory("/project", source)
-            .with_workdir("/project")
-            .with_exec(["uvx", f"ruff@{self.ruff_version}", "check", "."])
-        )
-        return await container.stdout()
-
-    @function
-    async def format(self, source: dagger.Directory) -> str:
-        """Formatting code.
-
-        Args:
-            source: source directory
-
-        Returns:
-            stdout at runtime
-        """
-        container = (
-            dag.container()
-            .from_(f"ghcr.io/astral-sh/uv:{UV_VERSION}-debian-slim")
-            .with_mounted_cache("/root/.cache/uv", UV_CACHE)
-            .with_directory("/project", source)
-            .with_workdir("/project")
-            .with_exec(["uvx", f"ruff@{self.ruff_version}", "format", ".", "--diff"])
-        )
-        return await container.stdout()
-
-    @function
-    async def check_typo(self, source: dagger.Directory) -> str:
-        """Checking typo.
-
-        Args:
-            source: source directory
-
-        Returns:
-            stdout at runtime
-        """
-        container = (
-            dag.container()
-            .from_(f"ghcr.io/astral-sh/uv:{UV_VERSION}-debian-slim")
-            .with_mounted_cache("/root/.cache/uv", UV_CACHE)
-            .with_directory("/project", source)
-            .with_workdir("/project")
-            .with_exec(["uvx", "typos", "."])
-        )
-        return await container.stdout()
-
-    @function
     async def static_analysis(self, source: dagger.Directory) -> None:
         """Execute static analysis.
 
         Args:
             source: source directory
         """
-        await self.lint(source)
-        await self.format(source)
-        await self.check_typo(source)
+        await static_analysis(source)
 
     @function
     async def faiss_cpu_ci(self, host_directory: dagger.Directory) -> dagger.Directory:
