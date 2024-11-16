@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "faiss-gpu-wheels builder package"
 authors = [{ name = "Di-Is", email = "rhoxbox@gmail.com" }]
 requires-python = ">=3.9"
-dependencies = []
+dependencies = ["setuptools", "oldest-supported-numpy"]
 
 [build-system]
 requires = ["hatchling"]
