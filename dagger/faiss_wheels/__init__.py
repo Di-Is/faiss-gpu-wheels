@@ -19,7 +19,7 @@ import faiss_wheels.test
 from dagger import dag, function, object_type
 from faiss_wheels import cpu_builder, gpu_builder
 
-from ._util import install_uv
+from ._util import UV_CACHE, UV_VERSION, install_uv
 
 if TYPE_CHECKING:
     from faiss_wheels.builder import AbsWheelBuilder
@@ -32,9 +32,6 @@ DAGGER_ROOT = Path(__file__).parent.parent
 class FaissWheels:
     """dagger ci piplline."""
 
-    # uv package manager cache
-    uv_cache = dag.cache_volume("uv-cache")
-    _uv_version = "0.4.24"
     ruff_version = "0.7.0"
 
     @function
@@ -49,8 +46,8 @@ class FaissWheels:
         """
         container = (
             dag.container()
-            .from_(f"ghcr.io/astral-sh/uv:{self._uv_version}-debian-slim")
-            .with_mounted_cache("/root/.cache/uv", self.uv_cache)
+            .from_(f"ghcr.io/astral-sh/uv:{UV_VERSION}-debian-slim")
+            .with_mounted_cache("/root/.cache/uv", UV_CACHE)
             .with_directory("/project", source)
             .with_workdir("/project")
             .with_exec(["uvx", f"ruff@{self.ruff_version}", "check", "."])
@@ -69,8 +66,8 @@ class FaissWheels:
         """
         container = (
             dag.container()
-            .from_(f"ghcr.io/astral-sh/uv:{self._uv_version}-debian-slim")
-            .with_mounted_cache("/root/.cache/uv", self.uv_cache)
+            .from_(f"ghcr.io/astral-sh/uv:{UV_VERSION}-debian-slim")
+            .with_mounted_cache("/root/.cache/uv", UV_CACHE)
             .with_directory("/project", source)
             .with_workdir("/project")
             .with_exec(["uvx", f"ruff@{self.ruff_version}", "format", ".", "--diff"])
@@ -89,8 +86,8 @@ class FaissWheels:
         """
         container = (
             dag.container()
-            .from_(f"ghcr.io/astral-sh/uv:{self._uv_version}-debian-slim")
-            .with_mounted_cache("/root/.cache/uv", self.uv_cache)
+            .from_(f"ghcr.io/astral-sh/uv:{UV_VERSION}-debian-slim")
+            .with_mounted_cache("/root/.cache/uv", UV_CACHE)
             .with_directory("/project", source)
             .with_workdir("/project")
             .with_exec(["uvx", "typos", "."])
@@ -182,7 +179,7 @@ class FaissWheels:
         cfg = self._load_cpu_config()
 
         container = (
-            install_uv(await self.build_cpu_container(host_directory), self._uv_version)
+            install_uv(await self.build_cpu_container(host_directory), UV_VERSION)
         ).with_env_variable("UV_PYTHON_PREFERENCE", "only-system")
 
         # make wheel
@@ -239,7 +236,7 @@ class FaissWheels:
         # build image for faiss-gpu wheel building
         container = install_uv(
             await self.build_gpu_container(host_directory, cuda_major_version),
-            self._uv_version,
+            UV_VERSION,
         ).with_env_variable("UV_PYTHON_PREFERENCE", "only-system")
 
         # build wheel
@@ -275,7 +272,7 @@ class FaissWheels:
         for test_cfg in cfg["test"].values():
             ctr = install_uv(
                 dag.container().from_(test_cfg["image"]).experimental_with_gpu(["0"]),
-                self._uv_version,
+                UV_VERSION,
             )
             py = "cp" + test_cfg["target_python_version"].replace(".", "")
             wheel_name = (await wheel_directory.glob(f"*{py}*.whl"))[0]
@@ -288,7 +285,7 @@ class FaissWheels:
                 .with_env_variable("UV_CACHE_DIR", "/root/.cache/uv")
                 .with_env_variable("UV_SYSTEM_PYTHON", "true")
                 .with_env_variable("UV_HTTP_TIMEOUT", "10000000")
-                .with_mounted_cache("/root/.cache/uv", self.uv_cache)
+                .with_mounted_cache("/root/.cache/uv", UV_CACHE)
                 .with_exec(
                     ["uv", "pip", "install", f"{wheel_name}[fix-cuda]"] + test_cfg["requires"]
                 )
@@ -313,7 +310,7 @@ class FaissWheels:
         cfg = _expand_test_config(cfg)
 
         for test_cfg in cfg["test"].values():
-            ctr = install_uv(dag.container().from_(test_cfg["image"]), self._uv_version)
+            ctr = install_uv(dag.container().from_(test_cfg["image"]), UV_VERSION)
             py = "cp" + test_cfg["target_python_version"].replace(".", "")
             wheel_name = (await wheel_directory.glob(f"*{py}*.whl"))[0]
             wheel = wheel_directory.file(wheel_name)
@@ -325,7 +322,7 @@ class FaissWheels:
                 .with_env_variable("UV_CACHE_DIR", "/root/.cache/uv")
                 .with_env_variable("UV_SYSTEM_PYTHON", "true")
                 .with_env_variable("UV_HTTP_TIMEOUT", "10000000")
-                .with_mounted_cache("/root/.cache/uv", self.uv_cache)
+                .with_mounted_cache("/root/.cache/uv", UV_CACHE)
                 .with_exec(["uv", "pip", "install", wheel_name] + test_cfg["requires"])
                 .with_env_variable("OMP_NUM_THREADS", "1")
             )
