@@ -11,12 +11,8 @@ ARG CUDA_MAJOR_VERSION
 
 FROM quay.io/pypa/manylinux2014_x86_64 as manylinux2014
 
-ENV CUDA_REPO_URL=http://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-rhel7.repo
-
 
 FROM quay.io/pypa/manylinux_2_28_x86_64 as manylinux_2_28
-
-ENV CUDA_REPO_URL=http://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo
 
 
 FROM ${AUDITWHEEL_POLICY}
