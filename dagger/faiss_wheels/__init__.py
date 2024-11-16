@@ -33,8 +33,6 @@ DAGGER_ROOT = Path(__file__).parent.parent
 class FaissWheels:
     """dagger ci piplline."""
 
-    ruff_version = "0.7.0"
-
     @function
     async def static_analysis(self, source: dagger.Directory) -> None:
         """Execute static analysis.
