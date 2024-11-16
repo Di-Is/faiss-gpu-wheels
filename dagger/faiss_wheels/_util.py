@@ -6,7 +6,10 @@ This software is released under the MIT License.
 http://opensource.org/licenses/mit-license.php
 """
 
-from dagger import Container, dag
+from dagger import CacheVolume, Container, dag
+
+UV_VERSION: str = "0.5.1"
+UV_CACHE: CacheVolume = dag.cache_volume("uv-cache")
 
 
 def install_uv(ctr: Container, uv_version: str) -> Container:
