@@ -19,7 +19,7 @@ import faiss_wheels.test
 from dagger import dag, function, object_type
 from faiss_wheels import cpu_builder, gpu_builder
 
-from .util import install_uv
+from ._util import install_uv
 
 if TYPE_CHECKING:
     from faiss_wheels.builder import AbsWheelBuilder
@@ -182,7 +182,7 @@ class FaissWheels:
         cfg = self._load_cpu_config()
 
         container = (
-            await install_uv(await self.build_cpu_container(host_directory), self._uv_version)
+            install_uv(await self.build_cpu_container(host_directory), self._uv_version)
         ).with_env_variable("UV_PYTHON_PREFERENCE", "only-system")
 
         # make wheel
@@ -237,11 +237,9 @@ class FaissWheels:
             directory included faiss-gpu wheels
         """
         # build image for faiss-gpu wheel building
-        container = (
-            await install_uv(
-                await self.build_gpu_container(host_directory, cuda_major_version),
-                self._uv_version,
-            )
+        container = install_uv(
+            await self.build_gpu_container(host_directory, cuda_major_version),
+            self._uv_version,
         ).with_env_variable("UV_PYTHON_PREFERENCE", "only-system")
 
         # build wheel
@@ -275,7 +273,7 @@ class FaissWheels:
         cfg = _expand_test_config(cfg)
 
         for test_cfg in cfg["test"].values():
-            ctr = await install_uv(
+            ctr = install_uv(
                 dag.container().from_(test_cfg["image"]).experimental_with_gpu(["0"]),
                 self._uv_version,
             )
@@ -315,7 +313,7 @@ class FaissWheels:
         cfg = _expand_test_config(cfg)
 
         for test_cfg in cfg["test"].values():
-            ctr = await install_uv(dag.container().from_(test_cfg["image"]), self._uv_version)
+            ctr = install_uv(dag.container().from_(test_cfg["image"]), self._uv_version)
             py = "cp" + test_cfg["target_python_version"].replace(".", "")
             wheel_name = (await wheel_directory.glob(f"*{py}*.whl"))[0]
             wheel = wheel_directory.file(wheel_name)
