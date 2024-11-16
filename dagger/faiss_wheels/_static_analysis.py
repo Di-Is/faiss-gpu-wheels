@@ -25,6 +25,7 @@ def _build_image(source: Directory) -> Container:
         .with_directory("/project", source)
         .with_workdir("/project")
         .with_mounted_cache("/root/.cache/uv", UV_CACHE)
+        .with_env_variable("UV_LINK_MODE", "copy")
     )
 
 
