@@ -113,19 +113,19 @@ You can build `faiss-gpu-cu11` and `faiss-gpu-cu12` wheels using [dagger](https:
 
 ```bash
 # build wheel for CUDA 11.8
-dagger call build-gpu-wheels --cuda-major-version 11 --host-directory=.:build-view --output ./wheelhouse/gpu/cuda11
+dagger call --source . build-wheels --config-file variant/faiss-gpu-cu11/config.toml --output ./wheelhouse/gpu-cu11
 
 # build wheel for CUDA 12.1
-dagger call build-gpu-wheels --cuda-major-version 12 --host-directory=.:build-view --output ./wheelhouse/gpu/cuda12
+dagger call --source . build-wheels --config-file variant/faiss-gpu-cu12/config.toml --output ./wheelhouse/gpu-cu12
 ```
 
-When executed, a wheel is created under "{repository root}/wheelhouse/gpu/cuXX".
+When executed, a wheel is created under "{repository root}/wheelhouse/gpu-cuXX".
 
 
 **Requirements**
 * OS: Linux
   * arch: x86_64
-* Dagger: v0.13.7
+* Dagger: v0.14.0
 
 ### Test wheels
 
@@ -134,16 +134,16 @@ You can test `faiss-gpu-cu11` and `faiss-gpu-cu12` wheels using [dagger](https:/
 
 ```bash
 # test for faiss-gpu-cu11 wheels
-_EXPERIMENTAL_DAGGER_GPU_SUPPORT=1 dagger call test-gpu-wheels --cuda-major-version 11 --host-directory=.:test-view --wheel-directory=./wheelhouse/gpu/cuda11/
+_EXPERIMENTAL_DAGGER_GPU_SUPPORT=1 dagger call --source . execute-test --config-file variant/faiss-gpu-cu11/config.toml --wheel-dir ./wheelhouse/gpu-cu11
 
 # test for faiss-gpu-cu12 wheels
-_EXPERIMENTAL_DAGGER_GPU_SUPPORT=1 dagger call test-gpu-wheels --cuda-major-version 12 --host-directory=.:test-view --wheel-directory=./wheelhouse/gpu/cuda12/
+_EXPERIMENTAL_DAGGER_GPU_SUPPORT=1 dagger call --source . execute-test --config-file variant/faiss-gpu-cu12/config.toml --wheel-dir ./wheelhouse/gpu-cu12
 ```
 
 **Requirements**
 * OS: Linux
   * arch: x86_64
-* Dagger: v0.13.7
+* Dagger: v0.14.0
 * Nvidia container toolkit
 * Nvidia driver: >=R530
 
@@ -153,13 +153,16 @@ _EXPERIMENTAL_DAGGER_GPU_SUPPORT=1 dagger call test-gpu-wheels --cuda-major-vers
 You can build andtest `faiss-gpu-cu11` and `faiss-gpu-cu12` wheels using [dagger](https://dagger.io).
 
 ```bash
-# test for faiss-gpu-cu11 & cu12 wheels
-_EXPERIMENTAL_DAGGER_GPU_SUPPORT=1 dagger call faiss-gpu-ci --cuda-major-versions 11 --cuda-major-versions 12 --host-directory=.:ci-view --output=./wheelhouse
+# faiss-gpu-cu11 wheels
+_EXPERIMENTAL_DAGGER_GPU_SUPPORT=1 dagger call --source . execute-pipeline --config-file variant/faiss-gpu-cu11/config.toml --output=./wheelhouse/gpu-cu11
+
+# faiss-gpu-cu12 wheels
+_EXPERIMENTAL_DAGGER_GPU_SUPPORT=1 dagger call --source . execute-pipeline --config-file variant/faiss-gpu-cu12/config.toml --output=./wheelhouse/gpu-cu12
 ```
 
 **Requirements**
 * OS: Linux
   * arch: x86_64
-* Dagger: v0.13.7
+* Dagger: v0.14.0
 * Nvidia container toolkit
 * Nvidia driver: >=R530

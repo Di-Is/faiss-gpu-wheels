@@ -7,7 +7,7 @@
 name = "faiss-wheels"
 version = "0.1.0"
 requires-python = ">=3.12"
-dependencies = ["dagger-io"]
+dependencies = ["dagger-io", "pydantic>=2.9.2", "packaging>=24.2"]
 
 [tool.uv.sources]
 dagger-io = { path = "sdk", editable = true }

@@ -1,0 +1,7 @@
+[[cuda]]
+package = "nvidia-cuda-runtime-cu12"
+library_regex = "libcudart.so.12"
+
+[[cuda]]
+package = "nvidia-cublas-cu12"
+library_regex = "libcublas.so.12"

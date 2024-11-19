@@ -20,6 +20,6 @@ jobs:
         uses: dagger/dagger-for-github@v5
         with:
           verb: call
-          args: "static-analysis --source ."
+          args: "--source . static-analysis"
           cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
           version: ${{ env.engine_version }}

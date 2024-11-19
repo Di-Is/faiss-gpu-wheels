@@ -6,13 +6,12 @@
 # http://opensource.org/licenses/mit-license.php
 ##################################################
 
-ARG AUDITWHEEL_POLICY="manylinux2014"
-ARG CUDA_MAJOR_VERSION
+ARG AUDITWHEEL_POLICY="manylinux2014_x86_64"
 
-FROM quay.io/pypa/manylinux2014_x86_64 as manylinux2014
+FROM quay.io/pypa/manylinux2014_x86_64 as manylinux2014_x86_64
 
 
-FROM quay.io/pypa/manylinux_2_28_x86_64 as manylinux_2_28
+FROM quay.io/pypa/manylinux_2_28_x86_64 as manylinux_2_28_x86_64
 
 
 FROM ${AUDITWHEEL_POLICY}
@@ -32,6 +31,7 @@ RUN cd faiss \
        -DFAISS_ENABLE_GPU="OFF" \
        -DFAISS_ENABLE_RAFT="OFF" \
        -DFAISS_ENABLE_PYTHON=OFF \
+       -DBUILD_SHARED_LIBS=ON \
        -DBUILD_TESTING=OFF \
        -DFAISS_OPT_LEVEL=${FAISS_OPT_LEVEL} \
        -DCMAKE_BUILD_TYPE=Release \
