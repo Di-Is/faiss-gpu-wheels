@@ -1,0 +1,20 @@
+Modify CmakeLists.txt to find numpy package.
+
+Copyright (c) 2024 Di-Is
+
+This software is released under the MIT License.
+http://opensource.org/licenses/mit-license.php
+
+diff --git a/faiss/faiss/python/CMakeLists.txt b/faiss/faiss/python/CMakeLists.txt
+index aea99af7..5acfa990 100644
+--- a/faiss/faiss/python/CMakeLists.txt
++++ b/faiss/faiss/python/CMakeLists.txt
+@@ -229,7 +229,7 @@ target_include_directories(swigfaiss_avx512 PRIVATE ${PROJECT_SOURCE_DIR}/../..)
+ target_include_directories(swigfaiss_sve PRIVATE ${PROJECT_SOURCE_DIR}/../..)
+ 
+ find_package(Python REQUIRED
+-  COMPONENTS Development NumPy
++  COMPONENTS Interpreter Development.Module NumPy
+ )
+ 
+ add_library(faiss_python_callbacks EXCLUDE_FROM_ALL

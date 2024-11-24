@@ -2,39 +2,5 @@
   "name": "faiss-wheels",
   "engineVersion": "v0.14.0",
   "sdk": "python",
-  "source": "dagger",
-  "views": [
-    {
-      "name": "build-view",
-      "patterns": [
-        "faiss",
-        "!faiss/.git",
-        "python",
-        "patch",
-        "version.txt",
-        "setup.py",
-        "builder",
-        "pyproject.toml",
-        "README.md",
-        "docker"
-      ]
-    },
-    {
-      "name": "ci-view",
-      "patterns": [
-        "!faiss/.git",
-        "!.git*",
-        "!wheelhouse"
-      ]
-    },
-    {
-      "name": "test-view",
-      "patterns": [
-        "faiss",
-        "!faiss/.git",
-        "version.txt",
-        "wheelhouse"
-      ]
-    }
-  ]
+  "source": "dagger"
 }

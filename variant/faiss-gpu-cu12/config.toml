@@ -1,0 +1,83 @@
+image = "manylinux_2_28_x86_64"
+opt-level = "generic"
+variant = "gpu-cu12"
+
+[cuda]
+major-version = "12"
+minor-version = "1"
+runtime-version = "12.1.105"
+cublas-version = "12.1.3.1"
+target-archs = "60-real;70-real;80-real;90-real"
+
+[cxx]
+njob = 32
+
+[python]
+njob = 4
+requires-python = ">=3.9,<=3.12"
+
+[python.auditwheel]
+repair-option = [
+    "--exclude",
+    "libcudart.so.12",
+    "--exclude",
+    "libcublas.so.12",
+    "--exclude",
+    "libcublasLt.so.12",
+]
+
+[[python.test]]
+name = "import_test"
+image = "fedora:40"
+target-python-versions = ["3.12"]
+install-command = []
+test-command = ["python", "-c", "'import faiss'"]
+
+[[python.test]]
+name = "cpu_test"
+image = "quay.io/pypa/manylinux_2_28_x86_64"
+target-python-versions = ["3.9", "3.10", "3.11", "3.12"]
+test-command = ["pytest", "faiss/tests", "-n", "8"]
+install-command = ["pytest", "scipy", "pytest-xdist"]
+
+[[python.test]]
+name = "cpu_contrib_test"
+image = "quay.io/pypa/manylinux_2_28_x86_64"
+target-python-versions = ["3.9", "3.10", "3.11", "3.12"]
+test-command = ["pytest", "-s", "faiss/tests/torch_test_contrib.py", "-n", "8"]
+install-command = [
+    "pytest",
+    "scipy",
+    "pytest-xdist",
+    "torch",
+    "--extra-index-url",
+    "https://download.pytorch.org/whl/cpu",
+]
+
+[[python.test]]
+name = "gpu_test"
+image = "quay.io/pypa/manylinux_2_28_x86_64"
+target-python-versions = ["3.9", "3.10", "3.11", "3.12"]
+test-command = [
+    "pytest",
+    "faiss/tests/common_faiss_tests.py",
+    "faiss/faiss/gpu/test/",
+]
+install-command = ["pytest", "scipy"]
+
+[[python.test]]
+name = "gpu_contrib_test"
+image = "quay.io/pypa/manylinux_2_28_x86_64"
+target-python-versions = ["3.9", "3.10", "3.11", "3.12"]
+test-command = [
+    "pytest",
+    "-s",
+    "faiss/faiss/gpu/test/torch_test_contrib_gpu.py",
+]
+install-command = [
+    "pytest",
+    "scipy",
+    "torch",
+    "--extra-index-url",
+    "https://download.pytorch.org/whl/cu121",
+]

@@ -6,26 +6,16 @@
 # http://opensource.org/licenses/mit-license.php
 ##################################################
 
-ARG AUDITWHEEL_POLICY="manylinux2014"
-ARG CUDA_MAJOR_VERSION
+ARG AUDITWHEEL_POLICY="manylinux2014_x86_64"
 
-FROM quay.io/pypa/manylinux2014_x86_64 as manylinux2014
+FROM quay.io/pypa/manylinux2014_x86_64 as manylinux2014_x86_64
 
 ENV CUDA_REPO_URL=http://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-rhel7.repo
 
 
-FROM quay.io/pypa/manylinux_2_28_x86_64 as manylinux_2_28
+FROM quay.io/pypa/manylinux_2_28_x86_64 as manylinux_2_28_x86_64
 
 ENV CUDA_REPO_URL=http://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo
-
-
-FROM manylinux2014 as manylinux2014_cu11
-
-
-FROM manylinux2014 as manylinux2014_cu12
-
-
-FROM manylinux_2_28 as manylinux_2_28_cu11
 
 # Use GCC version 11 for compatibility CUDA 11.8
 # Ref. https://stackoverflow.com/questions/6622454/cuda-incompatible-with-my-gcc-version
@@ -39,10 +29,9 @@ RUN yum -y install \
 ENV PATH="/opt/rh/gcc-toolset-11/root/usr/bin:${PATH}"
 
 
-FROM manylinux_2_28 as manylinux_2_28_cu12
+FROM ${AUDITWHEEL_POLICY}
 
-
-FROM ${AUDITWHEEL_POLICY}_cu${CUDA_MAJOR_VERSION}
+ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib64
 
 RUN yum install -y openblas-devel openblas-static \
  && rm -rf /var/cache/yum/* \
@@ -64,11 +53,8 @@ RUN yum -y install yum-utils \
  && yum clean all
 ENV PATH="/usr/local/cuda/bin:${PATH}"
 
-# apply patch (assume build context is project root)
 COPY ./faiss /tmp/project/faiss
-COPY ./patch/add-gpu-install.patch /tmp/project/patch/add-gpu-install.patch
 WORKDIR /tmp/project
-RUN git apply patch/add-gpu-install.patch
 
 ARG FAISS_OPT_LEVEL="generic"
 ARG BUILD_NJOB=32
@@ -79,6 +65,7 @@ RUN cd faiss \
        -DFAISS_ENABLE_GPU="ON" \
        -DFAISS_ENABLE_RAFT="OFF" \
        -DFAISS_ENABLE_PYTHON=OFF \
+       -DBUILD_SHARED_LIBS=ON \
        -DBUILD_TESTING=OFF \
        -DFAISS_OPT_LEVEL=${FAISS_OPT_LEVEL} \
        -DCMAKE_BUILD_TYPE=Release \
