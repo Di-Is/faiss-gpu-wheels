@@ -7,7 +7,7 @@ major-version = "12"
 minor-version = "1"
 runtime-version = "12.1.105"
 cublas-version = "12.1.3.1"
-target-archs = "60-real;70-real;80-real;90-real"
+target-archs = "70-real;80-real"
 
 [cxx]
 njob = 32
