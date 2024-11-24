@@ -1,4 +1,4 @@
-image = "manylinux_2_28_x86_64"
+image = "manylinux2014_x86_64"
 opt-level = "generic"
 variant = "gpu-cu12"
 
@@ -35,14 +35,14 @@ test-command = ["python", "-c", "'import faiss'"]
 
 [[python.test]]
 name = "cpu_test"
-image = "quay.io/pypa/manylinux_2_28_x86_64"
+image = "quay.io/pypa/manylinux2014_x86_64"
 target-python-versions = ["3.9", "3.10", "3.11", "3.12"]
 test-command = ["pytest", "faiss/tests", "-n", "8"]
 install-command = ["pytest", "scipy", "pytest-xdist"]
 
 [[python.test]]
 name = "cpu_contrib_test"
-image = "quay.io/pypa/manylinux_2_28_x86_64"
+image = "quay.io/pypa/manylinux2014_x86_64"
 target-python-versions = ["3.9", "3.10", "3.11", "3.12"]
 test-command = ["pytest", "-s", "faiss/tests/torch_test_contrib.py", "-n", "8"]
 install-command = [
@@ -56,7 +56,7 @@ install-command = [
 
 [[python.test]]
 name = "gpu_test"
-image = "quay.io/pypa/manylinux_2_28_x86_64"
+image = "quay.io/pypa/manylinux2014_x86_64"
 target-python-versions = ["3.9", "3.10", "3.11", "3.12"]
 test-command = [
     "pytest",
@@ -67,7 +67,7 @@ install-command = ["pytest", "scipy"]
 
 [[python.test]]
 name = "gpu_contrib_test"
-image = "quay.io/pypa/manylinux_2_28_x86_64"
+image = "quay.io/pypa/manylinux2014_x86_64"
 target-python-versions = ["3.9", "3.10", "3.11", "3.12"]
 test-command = [
     "pytest",
