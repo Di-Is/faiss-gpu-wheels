@@ -2,29 +2,27 @@
 #
 # This software is released under the MIT License.
 # http://opensource.org/licenses/mit-license.php
-# 
-# This file is created by the `generate_pyproject.py`. 
-
+#
+# This file is created by the `generate_pyproject.py`.
 [build-system]
 requires = ["scikit-build-core", "swig", "oldest-supported-numpy"]
 build-backend = "scikit_build_core.build"
 
 [project]
-name = "faiss-gpu-cu11"
 version = "1.9.0.0"
+authors = [{ name = "Di-Is", email = "rhoxbox@gmail.com" }]
+description = "A library for efficient similarity search and clustering of dense vectors."
+readme = "../../README.md"
+keywords = ["search nearest neighbors"]
+name = "faiss-gpu-cu11"
 requires-python = ">=3.9,<=3.12"
 dependencies = [
     "numpy<2",
     "packaging",
     "tomli; python_version < '3.11'",
-    "nvidia-cuda-runtime-cu11",
-    "nvidia-cublas-cu11",
+    "nvidia-cuda-runtime-cu11>=11.8.89",
+    "nvidia-cublas-cu11>=11.11.3.6",
 ]
-authors = [{ name = "Di-Is", email = "rhoxbox@gmail.com" }]
-description = "A library for efficient similarity search and clustering of dense vectors."
-license = { file = "../../LICENSE" }
-readme = "../../README.md"
-keywords = ["search nearest neighbors"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "License :: OSI Approved :: MIT License",
@@ -42,15 +40,24 @@ classifiers = [
     "Environment :: GPU :: NVIDIA CUDA :: 11",
 ]
 
-[project.optional-dependencies]
-fix-cuda = [
-    'nvidia-cuda-runtime-cu11==11.8.89',
-    'nvidia-cublas-cu11==11.11.3.6',
-]
+[project.license]
+file = "../../LICENSE"
 
 [project.urls]
 faiss-gpu-wheels = "https://github.com/Di-Is/faiss-gpu-wheels"
 
-[tool.scikit-build]
-cmake.source-dir = "../../"
-wheel.exclude = ["*.cxx"]
+[project.optional-dependencies]
+fix-cuda = [
+    "nvidia-cuda-runtime-cu11==11.8.89",
+    "nvidia-cublas-cu11==11.11.3.6",
+]
+
+[tool.scikit-build.cmake]
+source-dir = "../../"
+
+[tool.scikit-build.cmake.define]
+FAISS_ENABLE_GPU = "ON"
+FAISS_ENABLE_RAFT = "OFF"
+
+[tool.scikit-build.wheel]
+exclude = ["*.cxx"]

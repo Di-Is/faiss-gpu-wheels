@@ -3,10 +3,9 @@ opt-level = "generic"
 variant = "gpu-cu11"
 
 [cuda]
-major-version = "11"
-minor-version = "8"
-runtime-version = "11.8.89"
-cublas-version = "11.11.3.6"
+major = "11"
+minor = "8"
+patch = "0"
 target-archs = "60-real;70-real;80-real;90-real"
 
 [cxx]

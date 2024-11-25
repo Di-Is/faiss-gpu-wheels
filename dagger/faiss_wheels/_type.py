@@ -45,10 +45,9 @@ class Python(BaseModel):
 class CudaConfig(BaseModel):
     """Cuda config."""
 
-    major_version: str = Field(alias="major-version")
-    minor_version: str = Field(alias="minor-version")
-    runtime_version: str = Field(alias="runtime-version")
-    cublas_version: str = Field(alias="cublas-version")
+    major: str
+    minor: str
+    patch: str
     target_archs: str = Field(alias="target-archs")
 
 

@@ -36,8 +36,9 @@ class ImageBuilder(AbsImageBuilder):
         return self._source.docker_build(
             dockerfile=f"./variant/faiss-{self._config.variant}/Dockerfile",
             build_args=[
-                BuildArg("CUDA_MAJOR_VERSION", self._config.cuda.major_version),
-                BuildArg("CUDA_MINOR_VERSION", self._config.cuda.minor_version),
+                BuildArg("CUDA_MAJOR_VERSION", self._config.cuda.major),
+                BuildArg("CUDA_MINOR_VERSION", self._config.cuda.minor),
+                BuildArg("CUDA_PATCH_VERSION", self._config.cuda.patch),
                 BuildArg("CUDA_ARCHITECTURES", self._config.cuda.target_archs),
                 BuildArg("BUILD_NJOB", str(self._config.cxx.njob)),
                 BuildArg("FAISS_OPT_LEVEL", self._config.opt_level),
@@ -72,15 +73,21 @@ class WheelBuilder(AbsWheelBuilder):
         """
         ctr = (
             install_uv(self._ctr)
-            .with_env_variable(
-                "SKBUILD_CMAKE_ARGS",
-                "-DFAISS_ENABLE_GPU=ON;"
-                "-DFAISS_ENABLE_RAFT=OFF;"
-                f"-DFAISS_OPT_LEVEL={self._config.opt_level}",
-            )
             .with_exec(["git", "apply", "patch/modify-numpy-find-package.patch"])
             .with_workdir(f"variant/faiss-{self._config.variant}")
-            .with_exec(["uv", "build", "--wheel", "--python", py_version, "--out-dir", "."])
+            .with_exec(
+                [
+                    "uv",
+                    "build",
+                    "--wheel",
+                    "--python",
+                    py_version,
+                    "--out-dir",
+                    ".",
+                    "--config-setting",
+                    f"cmake.define.FAISS_OPT_LEVEL={self._config.opt_level}",
+                ]
+            )
         )
         wheel_name = (await ctr.directory(".").glob("*.whl"))[0]
         ctr = ctr.with_exec(
