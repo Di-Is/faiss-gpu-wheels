@@ -10,34 +10,12 @@ requires = ["scikit-build-core", "swig", "oldest-supported-numpy"]
 build-backend = "scikit_build_core.build"
 
 [project]
-name = "faiss-{{ variant }}"
 version = "1.9.0.0"
-requires-python = "{{ requires_python }}"
-dependencies = [
-    "numpy<2",
-    "packaging",
-    "tomli; python_version < '3.11'",
-    {{ dependencies }}
-]
 authors = [{ name = "Di-Is", email = "rhoxbox@gmail.com" }]
 description = "A library for efficient similarity search and clustering of dense vectors."
 license = { file = "../../LICENSE" }
 readme = "../../README.md"
 keywords = ["search nearest neighbors"]
-classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "License :: OSI Approved :: MIT License",
-    "Intended Audience :: Developers",
-    "Intended Audience :: Science/Research",
-    "Topic :: Scientific/Engineering :: Artificial Intelligence",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3 :: Only",
-    {{ classifiers }}
-]
-
-[project.optional-dependencies]
-{{ optional_dependencies }}
 
 [project.urls]
 faiss-gpu-wheels = "https://github.com/Di-Is/faiss-gpu-wheels"
@@ -45,4 +23,3 @@ faiss-gpu-wheels = "https://github.com/Di-Is/faiss-gpu-wheels"
 [tool.scikit-build]
 cmake.source-dir = "../../"
 wheel.exclude = ["*.cxx"]
-

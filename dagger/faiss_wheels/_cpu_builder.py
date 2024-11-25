@@ -72,13 +72,21 @@ class WheelBuilder(AbsWheelBuilder):
         # build faiss wheel
         ctr = (
             install_uv(self._ctr)
-            .with_env_variable(
-                "SKBUILD_CMAKE_ARGS",
-                f"-DFAISS_ENABLE_GPU=OFF;-DFAISS_OPT_LEVEL={self._config.opt_level}",
-            )
             .with_exec(["git", "apply", "patch/modify-numpy-find-package.patch"])
             .with_workdir(f"variant/faiss-{self._config.variant}")
-            .with_exec(["uv", "build", "--wheel", "--python", py_version, "--out-dir", "."])
+            .with_exec(
+                [
+                    "uv",
+                    "build",
+                    "--wheel",
+                    "--python",
+                    py_version,
+                    "--out-dir",
+                    ".",
+                    "--config-setting",
+                    f"cmake.define.FAISS_OPT_LEVEL={self._config.opt_level}",
+                ]
+            )
         )
         wheel_name = (await ctr.directory(".").glob("*.whl"))[0]
         ctr = ctr.with_exec(
