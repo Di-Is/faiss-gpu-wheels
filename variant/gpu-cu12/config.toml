@@ -1,0 +1,10 @@
+[cuda]
+version = "12.1.1"
+target-archs = "70-real;80-real"
+
+[python]
+preload-library = [
+    { "group" = "cuda", "package" = "nvidia-cuda-runtime-cu12", "library" = "libcudart.so.12" },
+    { "group" = "cuda", "package" = "nvidia-cublas-cu12", "library" = "libcublas.so.12" },
+    { "group" = "cuda", "package" = "nvidia-cublas-cu12", "library" = "libcublasLt.so.12" },
+]

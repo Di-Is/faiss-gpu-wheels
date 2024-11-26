@@ -9,27 +9,28 @@ requires = ["scikit-build-core", "swig", "oldest-supported-numpy"]
 build-backend = "scikit_build_core.build"
 
 [project]
+name = "faiss-cpu"
 version = "1.9.0.post1"
+dependencies = ["numpy<2", "packaging"]
+requires-python = ">=3.9,<3.13"
 authors = [{ name = "Di-Is", email = "rhoxbox@gmail.com" }]
 description = "A library for efficient similarity search and clustering of dense vectors."
 readme = "../../README.md"
 keywords = ["search nearest neighbors"]
-name = "faiss-cpu"
-requires-python = ">=3.9,<=3.12"
-dependencies = ["numpy<2", "packaging", "tomli; python_version < '3.11'"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 
 [project.license]
@@ -43,9 +44,26 @@ faiss-gpu-wheels = "https://github.com/Di-Is/faiss-gpu-wheels"
 [tool.scikit-build.cmake]
 source-dir = "../../"
 
-[tool.scikit-build.cmake.define]
-FAISS_ENABLE_GPU = "OFF"
-FAISS_ENABLE_RAFT = "OFF"
+[tool.scikit-build.cmake.define.FAISS_OPT_LEVEL]
+env = "FAISS_OPT_LEVEL"
 
 [tool.scikit-build.wheel]
 exclude = ["*.cxx"]
+
+[tool.cibuildwheel]
+build-frontend = "build[uv]"
+skip = "pp* *-musllinux* *i686"
+
+[tool.cibuildwheel.linux]
+before-all = " script/build.sh"
+test-requires = [
+    "pytest",
+    "scipy",
+    "torch",
+    "pytest-xdist",
+    "--extra-index-url",
+    "https://download.pytorch.org/whl/cpu",
+]
+environment-pass = ["NJOB", "FAISS_OPT_LEVEL"]
+repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel} "
+test-command = "\n# CPU Test\npytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) &&\npytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))\n"
