@@ -14,15 +14,10 @@ njob = 32
 [python]
 njob = 4
 requires-python = ">=3.9,<=3.12"
-
-[python.auditwheel]
-repair-option = [
-    "--exclude",
-    "libcudart.so.11.0",
-    "--exclude",
-    "libcublas.so.11",
-    "--exclude",
-    "libcublasLt.so.11",
+preload-library = [
+    { "group" = "cuda", "package" = "nvidia-cuda-runtime-cu11", "library" = "libcudart.so.11.0" },
+    { "group" = "cuda", "package" = "nvidia-cublas-cu11", "library" = "libcublas.so.11" },
+    { "group" = "cuda", "package" = "nvidia-cublas-cu11", "library" = "libcublasLt.so.11" },
 ]
 
 [[python.test]]
