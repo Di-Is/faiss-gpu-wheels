@@ -90,8 +90,9 @@ class WheelBuilder(AbsWheelBuilder):
             )
         )
         wheel_name = (await ctr.directory(".").glob("*.whl"))[0]
-        ctr = ctr.with_exec(
-            ["auditwheel", "repair", wheel_name, *self._config.python.auditwheel.repair_option]
-        )
+        audit_args = [
+            k for tgt in self._config.python.preload_library for k in ["--exclude", tgt.library]
+        ]
+        ctr = ctr.with_exec(["auditwheel", "repair", wheel_name, *audit_args])
         repaired_wheel_name = (await ctr.directory("wheelhouse").glob("*.whl"))[0]
         return ctr.directory("wheelhouse").file(repaired_wheel_name)

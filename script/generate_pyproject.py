@@ -112,6 +112,10 @@ def cli(args: Args) -> None:
     with (Path(__file__).parent / "template" / "pyproject.toml.tpl").open("rb") as f:
         pyproject = tomllib.load(f)
 
+    preload_config_path = variant_path / "_preload_library.toml"
+    with preload_config_path.open("wb") as f:
+        tomli_w.dump({"preload-library": config["python"]["preload-library"]}, f)
+
     requires_python = config["python"]["requires-python"]
     classifiers = [
         "Development Status :: 5 - Production/Stable",
@@ -128,6 +132,7 @@ def cli(args: Args) -> None:
     match args.variant:
         case "cpu":
             cmake_define = {"FAISS_ENABLE_GPU": "OFF", "FAISS_ENABLE_RAFT": "OFF"}
+
         case "gpu-cu11" | "gpu-cu12":
             major = config["cuda"]["major"]
             minor = config["cuda"]["minor"]
