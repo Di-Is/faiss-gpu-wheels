@@ -17,12 +17,6 @@ class Cxx(BaseModel):
     njob: int
 
 
-class AuditWheel(BaseModel):
-    """AuditWheel config."""
-
-    repair_option: list[str] = Field(alias="repair-option")
-
-
 class TestCase(BaseModel):
     """Python test config."""
 
@@ -33,22 +27,29 @@ class TestCase(BaseModel):
     test_command: list[str] = Field(alias="test-command")
 
 
+class PreloadLibrary(BaseModel):
+    """Preload library."""
+
+    group: str
+    package: str
+    library: str
+
+
 class Python(BaseModel):
     """Python config."""
 
     njob: int
     requires_python: str = Field(alias="requires-python")
-    auditwheel: AuditWheel
+    preload_library: list[PreloadLibrary] = Field(alias="preload-library")
     test: list[TestCase]
 
 
 class CudaConfig(BaseModel):
     """Cuda config."""
 
-    major_version: str = Field(alias="major-version")
-    minor_version: str = Field(alias="minor-version")
-    runtime_version: str = Field(alias="runtime-version")
-    cublas_version: str = Field(alias="cublas-version")
+    major: str
+    minor: str
+    patch: str
     target_archs: str = Field(alias="target-archs")
 
 

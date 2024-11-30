@@ -3,10 +3,9 @@ opt-level = "generic"
 variant = "gpu-cu12"
 
 [cuda]
-major-version = "12"
-minor-version = "1"
-runtime-version = "12.1.105"
-cublas-version = "12.1.3.1"
+major = "12"
+minor = "1"
+patch = "1"
 target-archs = "70-real;80-real"
 
 [cxx]
@@ -15,15 +14,10 @@ njob = 32
 [python]
 njob = 4
 requires-python = ">=3.9,<=3.12"
-
-[python.auditwheel]
-repair-option = [
-    "--exclude",
-    "libcudart.so.12",
-    "--exclude",
-    "libcublas.so.12",
-    "--exclude",
-    "libcublasLt.so.12",
+preload-library = [
+    { "group" = "cuda", "package" = "nvidia-cuda-runtime-cu12", "library" = "libcudart.so.12" },
+    { "group" = "cuda", "package" = "nvidia-cublas-cu12", "library" = "libcublas.so.12" },
+    { "group" = "cuda", "package" = "nvidia-cublas-cu12", "library" = "libcublasLt.so.12" },
 ]
 
 [[python.test]]

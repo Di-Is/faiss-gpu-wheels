@@ -39,15 +39,11 @@ RUN yum install -y openblas-devel openblas-static \
 
 ARG CUDA_MAJOR_VERSION
 ARG CUDA_MINOR_VERSION
+ARG CUDA_PATCH_VERSION
 
 RUN yum -y install yum-utils \
  && yum-config-manager --add-repo ${CUDA_REPO_URL} \
- && yum -y install cuda-profiler-api-${CUDA_MAJOR_VERSION}-${CUDA_MINOR_VERSION} \
- && yum -y install \
-       cuda-nvcc-${CUDA_MAJOR_VERSION}-${CUDA_MINOR_VERSION} \
-       cuda-cudart-devel-${CUDA_MAJOR_VERSION}-${CUDA_MINOR_VERSION} \
-       libcublas-devel-${CUDA_MAJOR_VERSION}-${CUDA_MINOR_VERSION} \
-       libcurand-devel-${CUDA_MAJOR_VERSION}-${CUDA_MINOR_VERSION} \
+ && yum -y install cuda-${CUDA_MAJOR_VERSION}-${CUDA_MINOR_VERSION}-${CUDA_MAJOR_VERSION}.${CUDA_MINOR_VERSION}.${CUDA_PATCH_VERSION} \
  && ln -s cuda-${CUDA_MAJOR_VERSION}.${CUDA_MINOR_VERSION} /usr/local/cuda \
  && rm -rf /var/cache/yum/* \
  && yum clean all

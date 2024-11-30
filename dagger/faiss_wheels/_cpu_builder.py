@@ -72,17 +72,26 @@ class WheelBuilder(AbsWheelBuilder):
         # build faiss wheel
         ctr = (
             install_uv(self._ctr)
-            .with_env_variable(
-                "SKBUILD_CMAKE_ARGS",
-                f"-DFAISS_ENABLE_GPU=OFF;-DFAISS_OPT_LEVEL={self._config.opt_level}",
-            )
             .with_exec(["git", "apply", "patch/modify-numpy-find-package.patch"])
             .with_workdir(f"variant/faiss-{self._config.variant}")
-            .with_exec(["uv", "build", "--wheel", "--python", py_version, "--out-dir", "."])
+            .with_exec(
+                [
+                    "uv",
+                    "build",
+                    "--wheel",
+                    "--python",
+                    py_version,
+                    "--out-dir",
+                    ".",
+                    "--config-setting",
+                    f"cmake.define.FAISS_OPT_LEVEL={self._config.opt_level}",
+                ]
+            )
         )
         wheel_name = (await ctr.directory(".").glob("*.whl"))[0]
-        ctr = ctr.with_exec(
-            ["auditwheel", "repair", wheel_name, *self._config.python.auditwheel.repair_option]
-        )
+        audit_args = [
+            k for tgt in self._config.python.preload_library for k in ["--exclude", tgt.library]
+        ]
+        ctr = ctr.with_exec(["auditwheel", "repair", wheel_name, *audit_args])
         repaired_wheel_name = (await ctr.directory("wheelhouse").glob("*.whl"))[0]
         return ctr.directory("wheelhouse").file(repaired_wheel_name)

@@ -8,9 +8,7 @@ njob = 32
 [python]
 njob = 4
 requires-python = ">=3.9,<=3.12"
-
-[python.auditwheel]
-repair-option = []
+preload-library = []
 
 [[python.test]]
 name = "import_test"
