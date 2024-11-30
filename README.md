@@ -51,7 +51,7 @@ pip install faiss-gpu-cu12[fix-cuda]
   * arch: x86_64
   * glibc >=2.17
 * Nvidia driver: >=R530 (specify `fix-cuda` extra during installation)
-* GPU architectures: Pascal\~Hopper (Compute Capability: 6.0\~9.0)
+* GPU architectures: Volta\~Ada Lovelace (Compute Capability: 7.0\~8.9)
 
 **Advanced**
 
@@ -88,7 +88,7 @@ pip install faiss-gpu-cu11[fix-cuda]
   * arch: x86_64
   * glibc >=2.17
 * Nvidia driver: >=R520 (specify `fix-cuda` extra during installation)
-* GPU architectures: Pascal\~Hopper (Compute Capability: 6.0\~9.0)
+* GPU architectures: Volta\~Ada Lovelace (Compute Capability: 7.0\~8.9)
 
 **Advanced**
 

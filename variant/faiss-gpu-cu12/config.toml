@@ -6,7 +6,7 @@ variant = "gpu-cu12"
 major = "12"
 minor = "1"
 patch = "1"
-target-archs = "60-real;70-real;80-real;90-real"
+target-archs = "70-real;80-real"
 
 [cxx]
 njob = 32
