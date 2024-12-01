@@ -9,6 +9,7 @@ http://opensource.org/licenses/mit-license.php
 from __future__ import annotations
 
 import ctypes
+import json
 import os
 from importlib.metadata import distribution
 from logging import getLogger
@@ -29,29 +30,6 @@ class _PreloadTarget(TypedDict):
     library: str
 
 
-def _search_install_file_path(package: str, library: str) -> str:
-    """Search file from python libraries.
-
-    Get absolute paths of files contained in installed python packages assume that
-    there is only one file to search for in the Python package to be searched.
-
-    Args:
-        package: python package name
-        library: search target filename regex
-
-    Raises:
-        FileNotFoundError: raise if the searched file does not exist
-
-    Returns:
-        file absolute path
-    """
-    for file in distribution(package).files:
-        if library == file.name:
-            return str(file.locate())
-    msg = f"{library} file isn't found in {package} package"
-    raise FileNotFoundError(msg)
-
-
 def _load_shared_library(preload_target: _PreloadTarget) -> None:
     """Global load shared libraries.
 
@@ -59,46 +37,22 @@ def _load_shared_library(preload_target: _PreloadTarget) -> None:
         preload_target: preload target
     """
     logger.debug("Try to load shared library in package.", extra=preload_target)
-    path = _search_install_file_path(preload_target["package"], preload_target["library"])
+    for file in distribution(preload_target["package"]).files:
+        if preload_target["library"] == file.name:
+            path = str(file.locate())
+            break
+    else:
+        msg = f"{preload_target['library']} file isn't found in {preload_target['package']}"
+        raise FileNotFoundError(msg)
     ctypes.CDLL(path, mode=ctypes.RTLD_GLOBAL)
-    logger.debug("Finish to load shared library.", extra={"path": path, **preload_target})
+    logger.debug("Finish to load shared library.", extra=preload_target)
 
 
-try:
-    import tomllib
-
-    def _load_toml(file_path: Path) -> dict:
-        """Load a TOML file using tomli (Python >= 3.11).
-
-        Args:
-            file_path: config file path
-
-        Returns:
-            loaded config
-        """
-        with file_path.open("rb") as f:
-            return tomllib.load(f)
-except ImportError:
-    import tomli
-
-    def _load_toml(file_path: Path) -> dict:
-        """Load a TOML file using tomli (Python < 3.11).
-
-        Args:
-            file_path: config file path
-
-        Returns:
-            loaded config
-        """
-        with file_path.open("rb") as f:
-            return tomli.load(f)
-
-
-_config_path = Path(__file__).parent / "_preload_library.toml"
+_CONFIG_PATH = Path(__file__).parent / "_preload_library.json"
 
 # loading shared libraries
-if _config_path.exists():
-    preload_targets: list[_PreloadTarget] = _load_toml(_config_path)["preload-library"]
+if _CONFIG_PATH.exists():
+    preload_targets: list[_PreloadTarget] = json.loads(_CONFIG_PATH.read_text())["preload-library"]
 else:
     preload_targets = []
 
