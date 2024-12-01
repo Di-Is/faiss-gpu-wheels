@@ -101,9 +101,8 @@ pip install faiss-gpu-cu11
 
 ### Versioning rule
 
-Packages to be published from this repository are "{A}.{B}.{C}.{D}" format.
-A, B, and C are the versions of faiss used for builds.
-D is the version used to manage changes specific to this repository.
+Basically, it follows the versioning rules of the original faiss repository.
+If there is a defect in the changed part in this repository, it will be updated with `postN` (N>=1) at the end of the version.
 
 ## Usage
 
