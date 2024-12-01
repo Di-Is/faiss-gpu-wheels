@@ -11,7 +11,7 @@ This repository provides scripts to build gpu wheels for the [faiss](https://git
 Distribute the `faiss-gpu-cuXX` package to PyPI using the contents of this repository. 
 
 * Builds CUDA 11.8+/CUDA 12.1+ compatible wheels.
-  * Support Volta\~Ada Lovelace architecture GPU (Compute Capability 6.0\~9.0).
+  * Support Volta\~Ada Lovelace architecture GPU (Compute Capability 7.0\~8.9).
   * **Dynamically linked to CUDA Runtime and cuBLAS libraries published in PyPI.**
 * Bundles OpenBLAS in Linux.
 
