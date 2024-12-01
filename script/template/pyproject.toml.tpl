@@ -10,7 +10,7 @@ requires = ["scikit-build-core", "swig", "oldest-supported-numpy"]
 build-backend = "scikit_build_core.build"
 
 [project]
-version = "1.9.0.0"
+version = "1.9.0.post1"
 authors = [{ name = "Di-Is", email = "rhoxbox@gmail.com" }]
 description = "A library for efficient similarity search and clustering of dense vectors."
 license = { file = "../../LICENSE" }
