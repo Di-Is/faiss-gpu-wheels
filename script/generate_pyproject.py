@@ -101,6 +101,7 @@ def cli(args: Args) -> None:
         envs = {}
         cmake_define = {"FAISS_OPT_LEVEL": {"env": "FAISS_OPT_LEVEL"}}
         test_requires = ["--extra-index-url", "https://download.pytorch.org/whl/cpu"]
+        enviromnet_pass = []
         test_command = """
 # CPU Test
 pytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) &&
@@ -125,11 +126,8 @@ pytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))
             f"Environment :: GPU :: NVIDIA CUDA :: {major}",
         ]
         cmake_define = {"FAISS_OPT_LEVEL": {"env": "FAISS_OPT_LEVEL"}, "FAISS_ENABLE_GPU": "ON"}
-        envs = {
-            "CUDA_VERSION": config["cuda"]["version"],
-            "FAISS_ENABLE_GPU": "ON",
-            "CUDA_ARCHITECTURES": config["cuda"]["target-archs"],
-        }
+        envs = {"CUDA_VERSION": config["cuda"]["version"], "FAISS_ENABLE_GPU": "ON"}
+        enviromnet_pass = ["CUDA_ARCHITECTURES"]
         test_command = """
 # CPU Test
 pytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) &&
@@ -153,6 +151,7 @@ pytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py
     pyproject["tool"]["cibuildwheel"]["linux"]["before-all"] = (
         f"{" ".join([f'{k}="{v}"' for k,v in envs.items()])} script/build.sh"
     )
+    pyproject["tool"]["cibuildwheel"]["linux"]["environment-pass"] += enviromnet_pass
     pyproject["tool"]["cibuildwheel"]["linux"]["test-requires"] += test_requires
     pyproject["tool"]["cibuildwheel"]["linux"] |= {
         "repair-wheel-command": f"auditwheel repair -w {{dest_dir}} {{wheel}} {repair_option}",

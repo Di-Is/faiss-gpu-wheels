@@ -9,6 +9,7 @@ on:
 env:
   NJOB: "32"
   FAISS_OPT_LEVEL: "generic"
+  CUDA_ARCHITECTURES: "70-real;80-real"
   
 jobs:
   build-wheel:

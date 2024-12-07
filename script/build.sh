@@ -32,7 +32,7 @@ fi
 
 # Build and patch faiss
 FAISS_OPT_LEVEL=${FAISS_OPT_LEVEL:-"generic"}
-CUDA_ARCHITECTURES=${CUDA_ARCHITECTURES:-"80-real"}
+CUDA_ARCHITECTURES=${CUDA_ARCHITECTURES:-"70-real;80-real"}
 NJOB=${NJOB:-"3"}
 cd faiss
 cmake . -B build \
