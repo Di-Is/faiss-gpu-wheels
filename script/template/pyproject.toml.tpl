@@ -61,3 +61,5 @@ test-requires = [
     "pytest-xdist"
 ]
 environment-pass = ["NJOB", "FAISS_OPT_LEVEL"]
+
+[tool.cibuildwheel.linux.environment]
