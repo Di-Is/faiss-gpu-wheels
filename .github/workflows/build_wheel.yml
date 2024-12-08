@@ -31,6 +31,7 @@ jobs:
           CIBW_ENVIRONMENT_LINUX: >
             NJOB=${{ env.NJOB }}
             FAISS_OPT_LEVEL=${{ env.FAISS_OPT_LEVEL }}
+            FAISS_ENABLE_GPU="ON"
             UV_CACHE_DIR="/host/tmp/.cache/uv"
             UV_LINK_MODE="copy"
             UV_CONCURRENT_DOWNLOADS="1"
