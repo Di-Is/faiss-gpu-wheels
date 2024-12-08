@@ -77,7 +77,7 @@ class Args(BaseModel):
 
 @click.command()
 @from_pydantic(Args)
-def cli(args: Args) -> None:
+def cli(args: Args) -> None:  # noqa: PLR0915
     """CLI function."""
     variant = args.variant
     # load pyproject source config
