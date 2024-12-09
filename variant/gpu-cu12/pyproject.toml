@@ -61,11 +61,11 @@ env = "FAISS_OPT_LEVEL"
 [tool.scikit-build.cmake.define.FAISS_ENABLE_GPU]
 env = "FAISS_ENABLE_GPU"
 
-[tool.scikit-build.cmake.define.FAISS_ENABLE_RAFT]
-env = "FAISS_ENABLE_RAFT"
-
 [tool.scikit-build.cmake.define.FAISS_ENABLE_ROCM]
 env = "FAISS_ENABLE_ROCM"
+
+[tool.scikit-build.cmake.define.FAISS_ENABLE_RAFT]
+env = "FAISS_ENABLE_RAFT"
 
 [tool.scikit-build.wheel]
 exclude = ["*.cxx"]
