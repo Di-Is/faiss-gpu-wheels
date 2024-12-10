@@ -55,11 +55,17 @@ fix-cuda = [
 [tool.scikit-build.cmake]
 source-dir = "../../"
 
-[tool.scikit-build.cmake.define]
-FAISS_ENABLE_GPU = "ON"
-
 [tool.scikit-build.cmake.define.FAISS_OPT_LEVEL]
 env = "FAISS_OPT_LEVEL"
+
+[tool.scikit-build.cmake.define.FAISS_ENABLE_GPU]
+env = "FAISS_ENABLE_GPU"
+
+[tool.scikit-build.cmake.define.FAISS_ENABLE_ROCM]
+env = "FAISS_ENABLE_ROCM"
+
+[tool.scikit-build.cmake.define.FAISS_ENABLE_RAFT]
+env = "FAISS_ENABLE_RAFT"
 
 [tool.scikit-build.wheel]
 exclude = ["*.cxx"]
@@ -69,7 +75,7 @@ build-frontend = "build[uv]"
 skip = "pp* *-musllinux* *i686"
 
 [tool.cibuildwheel.linux]
-before-all = "CUDA_VERSION=\"12.1.1\" FAISS_ENABLE_GPU=\"ON\" script/build.sh"
+before-all = "CUDA_VERSION=\"12.1.1\" script/build.sh"
 test-requires = [
     "pytest",
     "scipy",
@@ -81,3 +87,6 @@ test-requires = [
 environment-pass = ["NJOB", "FAISS_OPT_LEVEL", "CUDA_ARCHITECTURES"]
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel} --exclude libcudart.so.12 --exclude libcublas.so.12 --exclude libcublasLt.so.12"
 test-command = "\n# CPU Test\npytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) &&\npytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1)) &&\n# GPU Test\npytest {project}/faiss/tests/common_faiss_tests.py {project}/faiss/faiss/gpu/test/ -n 4 &&\npytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py\n"
+
+[tool.cibuildwheel.linux.environment]
+FAISS_ENABLE_GPU = "ON"

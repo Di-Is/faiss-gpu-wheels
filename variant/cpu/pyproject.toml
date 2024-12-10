@@ -47,6 +47,15 @@ source-dir = "../../"
 [tool.scikit-build.cmake.define.FAISS_OPT_LEVEL]
 env = "FAISS_OPT_LEVEL"
 
+[tool.scikit-build.cmake.define.FAISS_ENABLE_GPU]
+env = "FAISS_ENABLE_GPU"
+
+[tool.scikit-build.cmake.define.FAISS_ENABLE_ROCM]
+env = "FAISS_ENABLE_ROCM"
+
+[tool.scikit-build.cmake.define.FAISS_ENABLE_RAFT]
+env = "FAISS_ENABLE_RAFT"
+
 [tool.scikit-build.wheel]
 exclude = ["*.cxx"]
 
@@ -67,3 +76,5 @@ test-requires = [
 environment-pass = ["NJOB", "FAISS_OPT_LEVEL"]
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel} "
 test-command = "\n# CPU Test\npytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) &&\npytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))\n"
+
+[tool.cibuildwheel.linux.environment]
