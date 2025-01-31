@@ -8,7 +8,7 @@ http://opensource.org/licenses/mit-license.php
 """
 
 # /// script
-# requires-python = "~=3.12"
+# requires-python = "~=3.12.0"
 # dependencies = [
 #     "packaging",
 #     "click",
