@@ -1,9 +1,17 @@
+# Copyright (c) 2024 Di-Is
+#
+# This software is released under the MIT License.
+# http://opensource.org/licenses/mit-license.php
+
 [project]
-name = "main"
-version = "0.0.0"
-dependencies = []
+name = "faiss-wheels"
+version = "0.1.0"
 requires-python = ">=3.12"
+dependencies = ["dagger-io", "pydantic>=2.9.2", "packaging>=24.2"]
+
+[tool.uv.sources]
+dagger-io = { path = "sdk", editable = true }
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling==1.25.0"]
 build-backend = "hatchling.build"

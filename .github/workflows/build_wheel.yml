@@ -1,0 +1,59 @@
+name: Build & publish wheel
+
+on:
+  workflow_call:
+  pull_request:
+  release:
+    types: [published]
+  
+env:
+  NJOB: "32"
+  FAISS_OPT_LEVEL: "generic"
+  CUDA_ARCHITECTURES: "70-real;80-real"
+  
+jobs:
+  build-wheel:
+    runs-on: self-hosted
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: ["gpu-cu11", "gpu-cu12"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+      - name: build faiss-${{ matrix.variant }}
+        uses: pypa/cibuildwheel@v2.22.0
+        with:
+          package-dir: variant/${{ matrix.variant }}
+          output-dir: wheelhouse
+        env:
+          CIBW_ENVIRONMENT_LINUX: >
+            NJOB=${{ env.NJOB }}
+            FAISS_OPT_LEVEL=${{ env.FAISS_OPT_LEVEL }}
+            FAISS_ENABLE_GPU="ON"
+            UV_CACHE_DIR="/host/tmp/.cache/uv"
+            UV_LINK_MODE="copy"
+            UV_CONCURRENT_DOWNLOADS="1"
+            OMP_NUM_THREADS="1"
+          CIBW_CONTAINER_ENGINE: 'docker; create_args: --gpus all'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheel-${{ matrix.variant }}
+          path: ./wheelhouse/*.whl
+
+  publish:
+    name: upload wheel to PyPI
+    needs: ["build-wheel"]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    if: github.event_name == 'release' && github.event.action == 'published'
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://upload.pypi.org/legacy/

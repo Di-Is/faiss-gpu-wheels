@@ -11,7 +11,7 @@ This repository provides scripts to build gpu wheels for the [faiss](https://git
 Distribute the `faiss-gpu-cuXX` package to PyPI using the contents of this repository. 
 
 * Builds CUDA 11.8+/CUDA 12.1+ compatible wheels.
-  * Support Pascal\~Hopper architecture GPU (Compute Capability 6.0\~9.0).
+  * Support Volta\~Ada Lovelace architecture GPU (Compute Capability 7.0\~8.9).
   * **Dynamically linked to CUDA Runtime and cuBLAS libraries published in PyPI.**
 * Bundles OpenBLAS in Linux.
 
@@ -43,15 +43,15 @@ The following command will install faiss and the CUDA Runtime and cuBLAS for CUD
 
 ```bash
 # install CUDA 12.1 at the same time
-pip install faiss-gpu-cu12[fix-cuda]
+$ pip install faiss-gpu-cu12[fix-cuda]
 ```
 
 **Requirements**
 * OS: Linux
   * arch: x86_64
-  * glibc >=2.28
+  * glibc >=2.17
 * Nvidia driver: >=R530 (specify `fix-cuda` extra during installation)
-* GPU architectures: Pascal\~Hopper (Compute Capability: 6.0\~9.0)
+* GPU architectures: Volta\~Ada Lovelace (Compute Capability: 7.0\~8.9)
 
 **Advanced**
 
@@ -65,7 +65,7 @@ The installation commands are as follows.
 
 ```bash
 # install CUDA 12.X(X>=1) at the same time
-pip install faiss-gpu-cu12
+$ pip install faiss-gpu-cu12
 ```
 
 If you install the `faiss-gpu-cuXX` package in this way, CUDA may be updated due to lock file updates, etc.
@@ -80,15 +80,15 @@ The following command will install faiss and the CUDA Runtime and cuBLAS for CUD
 
 ```bash
 # install CUDA 11.8 at the same time
-pip install faiss-gpu-cu11[fix-cuda]
+$ pip install faiss-gpu-cu11[fix-cuda]
 ```
 
 **Requirements**
 * OS: Linux
   * arch: x86_64
-  * glibc >=2.28
+  * glibc >=2.17
 * Nvidia driver: >=R520 (specify `fix-cuda` extra during installation)
-* GPU architectures: Pascal\~Hopper (Compute Capability: 6.0\~9.0)
+* GPU architectures: Volta\~Ada Lovelace (Compute Capability: 7.0\~8.9)
 
 **Advanced**
 
@@ -96,70 +96,40 @@ Since CUDA 11.8 is the final version of the CUDA 11 series, the results are the 
 
 ```bash
 # install CUDA 11.X(X>=8) at the same time
-pip install faiss-gpu-cu11
+$ pip install faiss-gpu-cu11
 ```
 
 ### Versioning rule
 
-Packages to be published from this repository are "{A}.{B}.{C}.{D}" format.
-A, B, and C are the versions of faiss used for builds.
-D is the version used to manage changes specific to this repository.
+Basically, it follows the versioning rules of the original faiss repository.
+If there is a defect in the changed part in this repository, it will be updated with `postN` (N>=1) at the end of the version.
 
 ## Usage
 
-### Build wheels
-
-You can build `faiss-gpu-cu11` and `faiss-gpu-cu12` wheels using [dagger](https://dagger.io).
+You can build `faiss-gpu-cu11` and `faiss-gpu-cu12` wheels using [cibuildwheel](https://github.com/pypa/cibuildwheel).
 
 ```bash
-# build wheel for CUDA 11.8
-dagger call build-gpu-wheels --cuda-major-version 11 --host-directory=.:build-view --output ./wheelhouse/gpu/cuda11
+# Number of processes used when building faiss
+$ export NJOB="32"
+# Optimization level of faiss
+$ export FAISS_OPT_LEVEL="generic"
+# Build target nvidia gpu architectures
+$ export CUDA_ARCHITECTURES="70-real;80-real"
+# If no tests are performed at build time for cibuildwheel
+$ export CIBW_TEST_COMMAND_LINUX=""
+# If tests are performed at build time for cibuildwheel
+$ export CIBW_CONTAINER_ENGINE='docker; create_args: --gpus all'
 
-# build wheel for CUDA 12.1
-dagger call build-gpu-wheels --cuda-major-version 12 --host-directory=.:build-view --output ./wheelhouse/gpu/cuda12
+# build faiss-gpu-cu11 wheels
+$ uvx cibuildwheel@2.22.0 variant/gpu-cu11 --output-dir wheelhouse/gpu-cu11
+# build faiss-gpu-cu12 wheels
+$ uvx cibuildwheel@2.22.0 variant/gpu-cu12 --output-dir wheelhouse/gpu-cu12
 ```
 
-When executed, a wheel is created under "{repository root}/wheelhouse/gpu/cuXX".
-
+When executed, a wheel is created under "{repository root}/wheelhouse/gpu-cuXX".
 
 **Requirements**
 * OS: Linux
   * arch: x86_64
-* Dagger: v0.13.7
-
-### Test wheels
-
-You can test `faiss-gpu-cu11` and `faiss-gpu-cu12` wheels using [dagger](https://dagger.io).
-
-
-```bash
-# test for faiss-gpu-cu11 wheels
-_EXPERIMENTAL_DAGGER_GPU_SUPPORT=1 dagger call test-gpu-wheels --cuda-major-version 11 --host-directory=.:test-view --wheel-directory=./wheelhouse/gpu/cuda11/
-
-# test for faiss-gpu-cu12 wheels
-_EXPERIMENTAL_DAGGER_GPU_SUPPORT=1 dagger call test-gpu-wheels --cuda-major-version 12 --host-directory=.:test-view --wheel-directory=./wheelhouse/gpu/cuda12/
-```
-
-**Requirements**
-* OS: Linux
-  * arch: x86_64
-* Dagger: v0.13.7
-* Nvidia container toolkit
-* Nvidia driver: >=R530
-
-
-### Build & Test wheels
-
-You can build andtest `faiss-gpu-cu11` and `faiss-gpu-cu12` wheels using [dagger](https://dagger.io).
-
-```bash
-# test for faiss-gpu-cu11 & cu12 wheels
-_EXPERIMENTAL_DAGGER_GPU_SUPPORT=1 dagger call faiss-gpu-ci --cuda-major-versions 11 --cuda-major-versions 12 --host-directory=.:ci-view --output=./wheelhouse
-```
-
-**Requirements**
-* OS: Linux
-  * arch: x86_64
-* Dagger: v0.13.7
-* Nvidia container toolkit
-* Nvidia driver: >=R530
+* Nvidia container toolkit (If test is performed)
+* Nvidia driver: >=R530 (If test is performed)

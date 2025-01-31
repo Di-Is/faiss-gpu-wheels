@@ -1,4 +1,4 @@
-line-length = 88
+line-length = 99
 indent-width = 4
 
 target-version = "py39"
@@ -21,15 +21,17 @@ ignore = [
     "COM819",
     "ISC001",
     "ISC002",
-    "ANN101",
-    "ANN102",
 ]
 select = ["ALL"]
 fixable = ["ALL"]
+
+[lint.extend-per-file-ignores]
+"script/*" = ["INP001"]
+
 
 [lint.pydocstyle]
 convention = "google"
 
 [format]
 docstring-code-format = true
-docstring-code-line-length = 88
+docstring-code-line-length = 99
