@@ -1,0 +1,19 @@
+{
+    "preload-library": [
+        {
+            "group": "cuda",
+            "package": "nvidia-cuda-runtime-cu12",
+            "library": "libcudart.so.12"
+        },
+        {
+            "group": "cuda",
+            "package": "nvidia-cublas-cu12",
+            "library": "libcublas.so.12"
+        },
+        {
+            "group": "cuda",
+            "package": "nvidia-cublas-cu12",
+            "library": "libcublasLt.so.12"
+        }
+    ]
+}

@@ -8,18 +8,12 @@ http://opensource.org/licenses/mit-license.php
 
 from __future__ import annotations
 
-from typing import Callable
-
-import anyio
-import tomllib
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
-from dagger import CacheVolume, Container, File, dag
+from dagger import CacheVolume, Container, dag
 
-from ._type import CpuConfig, GpuCudaConfig
-
-UV_VERSION: str = "0.5.4"
+UV_VERSION: str = "0.5.5"
 UV_CACHE: CacheVolume = dag.cache_volume("uv-cache")
 
 
@@ -48,42 +42,6 @@ def install_uv(
     )
 
 
-async def execute_async_parallel(
-    function: Callable, kwargs_list: list[dict], njob: int | None = None
-) -> list:
-    """Execute async function parallel.
-
-    Args:
-        function: async function
-        kwargs_list: function kwargs format arguments.
-        njob: number of job.
-
-    Returns:
-        jon result
-    """
-
-    async def _core_function(func: Callable, kwargs_list: list[dict], njob: int = 1) -> list:
-        limiter = anyio.CapacityLimiter(njob)
-        results = []
-
-        async def _worker(kwargs: dict) -> None:
-            async with limiter:
-                result = await func(**kwargs)
-                results.append(result)
-
-        async with anyio.create_task_group() as tg:
-            for kwargs in kwargs_list:
-                tg.start_soon(_worker, kwargs)
-
-        return results
-
-    if njob and njob > 1:
-        results = await _core_function(function, kwargs_list, njob)
-    else:
-        results = [await function(**kwargs) for kwargs in kwargs_list]
-    return results
-
-
 def get_compatible_python(requires_python: str) -> list[str]:
     """Get compatible python versions.
 
@@ -108,20 +66,3 @@ def get_compatible_python(requires_python: str) -> list[str]:
         else:
             minor += 1
     return compatible_versions
-
-
-async def load_config(config: File) -> CpuConfig | GpuCudaConfig:
-    """Load config.
-
-    Returns:
-        config
-    """
-    raw_config = tomllib.loads(await config.contents())
-    match raw_config["variant"]:
-        case "cpu":
-            config = CpuConfig(**raw_config)
-        case "gpu-cu11" | "gpu-cu12":
-            config = GpuCudaConfig(**raw_config)
-        case _:
-            raise NotImplementedError
-    return config

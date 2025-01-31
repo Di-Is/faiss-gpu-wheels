@@ -26,19 +26,15 @@ import click
 import requests
 import tomli_w
 import tomllib
-from packaging.specifiers import SpecifierSet
-from packaging.version import Version
 from pydanclick import from_pydantic
 from pydantic import BaseModel
 
 
-def get_cuda_version(major: int, minor: int, patch: int, component: str) -> str:
+def get_cuda_version(version: str, component: str) -> str:
     """Get cuda toolkit component version.
 
     Args:
-        major: cuda major version
-        minor: cuda minor version
-        patch: cuda patch version
+        version: cuda version (x.y.z format)
         component: component name
 
     Raises:
@@ -47,11 +43,14 @@ def get_cuda_version(major: int, minor: int, patch: int, component: str) -> str:
     Returns:
         component version
     """
-    json_file = f"version_{major}.{minor}.{patch}.json"
+    json_file = f"version_{version}.json"
 
+    # make cache
     cache_dir = Path(__file__).parent / ".cache"
     if not cache_dir.exists():
         cache_dir.mkdir()
+
+    # load cache
     cache_file = cache_dir / json_file
     if cache_file.exists():
         with cache_file.open("rb") as f:
@@ -61,38 +60,13 @@ def get_cuda_version(major: int, minor: int, patch: int, component: str) -> str:
         response = requests.get(url, timeout=30)
         response.raise_for_status()
         data = response.json()
+        # save cache
         with cache_file.open("w") as f:
-            json.dump(data, f)
+            json.dump(data, f, indent=4)
     if component not in data:
         msg = f"Not found {component} data"
         raise ValueError(msg)
     return data[component]["version"]
-
-
-def get_compatible_python(requires_python: str) -> list[str]:
-    """Get compatible python versions.
-
-    Args:
-        requires_python: requires-python format str in pyproject.toml
-
-    Returns:
-        compatible python list
-    """
-    specifier = SpecifierSet(requires_python)
-    compatible_versions = []
-    minor = 0
-    start = False
-    while True:
-        version = Version(f"3.{minor}")
-        if version in specifier:
-            compatible_versions.append(str(version))
-            minor += 1
-            start = True
-        elif start:
-            break
-        else:
-            minor += 1
-    return compatible_versions
 
 
 class Args(BaseModel):
@@ -105,62 +79,84 @@ class Args(BaseModel):
 @from_pydantic(Args)
 def cli(args: Args) -> None:
     """CLI function."""
-    variant_path = Path(__file__).parent.parent / "variant" / f"faiss-{args.variant}"
+    variant = args.variant
+    # load pyproject source config
+    variant_path = Path(__file__).parent.parent / "variant" / f"{variant}"
     with (variant_path / "config.toml").open("rb") as f:
         config = tomllib.load(f)
 
+    # load pyproject template
     with (Path(__file__).parent / "template" / "pyproject.toml.tpl").open("rb") as f:
         pyproject = tomllib.load(f)
 
-    preload_config_path = variant_path / "_preload_library.toml"
-    with preload_config_path.open("wb") as f:
-        tomli_w.dump({"preload-library": config["python"]["preload-library"]}, f)
+    # save preload-library list
+    preload_config_path = variant_path / "_preload_library.json"
+    with preload_config_path.open("w") as f:
+        json.dump({"preload-library": config["python"]["preload-library"]}, f, indent=4)
 
-    requires_python = config["python"]["requires-python"]
-    classifiers = [
-        "Development Status :: 5 - Production/Stable",
-        "License :: OSI Approved :: MIT License",
-        "Intended Audience :: Developers",
-        "Intended Audience :: Science/Research",
-        "Topic :: Scientific/Engineering :: Artificial Intelligence",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3 :: Only",
-    ] + [f"Programming Language :: Python :: {v}" for v in get_compatible_python(requires_python)]
-    dependencies = ["numpy<2", "packaging", "tomli; python_version < '3.11'"]
-    optional_dependencies = {}
-    match args.variant:
-        case "cpu":
-            cmake_define = {"FAISS_ENABLE_GPU": "OFF", "FAISS_ENABLE_RAFT": "OFF"}
-
-        case "gpu-cu11" | "gpu-cu12":
-            major = config["cuda"]["major"]
-            minor = config["cuda"]["minor"]
-            patch = config["cuda"]["patch"]
-            cublas_version = get_cuda_version(major, minor, patch, "libcublas")
-            cudart_version = get_cuda_version(major, minor, patch, "cuda_cudart")
-            dependencies += [
-                f"nvidia-cuda-runtime-cu{major}>={cudart_version}",
-                f"nvidia-cublas-cu{major}>={cublas_version}",
+    if variant == "cpu":
+        dependencies = []
+        optional_dependencies = {}
+        classifiers = []
+        build_envs = {}
+        envs = {}
+        test_requires = ["--extra-index-url", "https://download.pytorch.org/whl/cpu"]
+        enviromnet_pass = []
+        test_command = """
+# CPU Test
+pytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) &&
+pytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))
+"""
+    elif variant in ["gpu-cu11", "gpu-cu12"]:
+        major, _, _ = config["cuda"]["version"].split(".")
+        cublas_ver = get_cuda_version(config["cuda"]["version"], "libcublas")
+        cudart_ver = get_cuda_version(config["cuda"]["version"], "cuda_cudart")
+        dependencies = [
+            f"nvidia-cuda-runtime-cu{major}>={cudart_ver}",
+            f"nvidia-cublas-cu{major}>={cublas_ver}",
+        ]
+        optional_dependencies = {
+            "fix-cuda": [
+                f"nvidia-cuda-runtime-cu{major}=={cudart_ver}",
+                f"nvidia-cublas-cu{major}=={cublas_ver}",
             ]
-            optional_dependencies = {
-                "fix-cuda": [
-                    f"nvidia-cuda-runtime-cu{major}=={cudart_version}",
-                    f"nvidia-cublas-cu{major}=={cublas_version}",
-                ]
-            }
-            classifiers += [
-                "Environment :: GPU :: NVIDIA CUDA",
-                f"Environment :: GPU :: NVIDIA CUDA :: {major}",
-            ]
-            cmake_define = {"FAISS_ENABLE_GPU": "ON", "FAISS_ENABLE_RAFT": "OFF"}
-
+        }
+        classifiers = [
+            "Environment :: GPU :: NVIDIA CUDA",
+            f"Environment :: GPU :: NVIDIA CUDA :: {major}",
+        ]
+        build_envs = {"CUDA_VERSION": config["cuda"]["version"]}
+        envs = {"FAISS_ENABLE_GPU": "ON"}
+        enviromnet_pass = ["CUDA_ARCHITECTURES"]
+        test_command = """
+# CPU Test
+pytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) &&
+pytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1)) &&
+# GPU Test
+pytest {project}/faiss/tests/common_faiss_tests.py {project}/faiss/faiss/gpu/test/ -n 4 &&
+pytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py
+"""
+        if variant == "gpu-cu11":
+            test_requires = ["--extra-index-url", "https://download.pytorch.org/whl/cu118"]
+        elif variant == "gpu-cu12":
+            test_requires = ["--extra-index-url", "https://download.pytorch.org/whl/cu121"]
     pyproject["project"]["name"] = f"faiss-{args.variant}"
-    pyproject["project"]["requires-python"] = requires_python
-    pyproject["project"]["dependencies"] = dependencies
+    pyproject["project"]["dependencies"] += dependencies
     pyproject["project"]["optional-dependencies"] = optional_dependencies
-    pyproject["project"]["classifiers"] = classifiers
-    pyproject["tool"]["scikit-build"]["cmake"]["define"] = cmake_define
+    pyproject["project"]["classifiers"] += classifiers
+    repair_option = " ".join(
+        [i for v in config["python"]["preload-library"] for i in ["--exclude", v["library"]]]
+    )
+    pyproject["tool"]["cibuildwheel"]["linux"]["before-all"] = (
+        f"{" ".join([f'{k}="{v}"' for k,v in build_envs.items()])} script/build.sh"
+    )
+    pyproject["tool"]["cibuildwheel"]["linux"]["environment-pass"] += enviromnet_pass
+    pyproject["tool"]["cibuildwheel"]["linux"]["environment"] |= envs
+    pyproject["tool"]["cibuildwheel"]["linux"]["test-requires"] += test_requires
+    pyproject["tool"]["cibuildwheel"]["linux"] |= {
+        "repair-wheel-command": f"auditwheel repair -w {{dest_dir}} {{wheel}} {repair_option}",
+        "test-command": test_command,
+    }
 
     pyproject_path = variant_path / "pyproject.toml"
     text = """# Copyright (c) 2024 Di-Is
