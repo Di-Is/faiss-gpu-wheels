@@ -114,7 +114,7 @@ $ export NJOB="32"
 # Optimization level of faiss
 $ export FAISS_OPT_LEVEL="generic"
 # Build target nvidia gpu architectures
-$ export CUDA_ARCHITECTURES: "70-real;80-real"
+$ export CUDA_ARCHITECTURES="70-real;80-real"
 # If no tests are performed at build time for cibuildwheel
 $ export CIBW_TEST_COMMAND_LINUX=""
 # If tests are performed at build time for cibuildwheel
