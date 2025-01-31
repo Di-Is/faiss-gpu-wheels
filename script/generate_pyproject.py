@@ -56,7 +56,7 @@ def get_cuda_version(version: str, component: str) -> str:
         with cache_file.open("rb") as f:
             data = json.load(f)
     else:
-        url = f"https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64/{json_file}"
+        url = f"https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/{json_file}"
         response = requests.get(url, timeout=30)
         response.raise_for_status()
         data = response.json()
