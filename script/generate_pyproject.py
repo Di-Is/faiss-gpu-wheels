@@ -133,7 +133,7 @@ pytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))
 pytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) &&
 pytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1)) &&
 # GPU Test
-pytest {project}/faiss/tests/common_faiss_tests.py {project}/faiss/faiss/gpu/test/ -n 4 &&
+pytest {project}/faiss/tests/common_faiss_tests.py {project}/faiss/faiss/gpu/test/ -n 2 &&
 pytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py
 """
         if variant == "gpu-cu11":

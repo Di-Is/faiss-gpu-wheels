@@ -21,3 +21,7 @@ dev = [
     { include-group = "typo" },
     { include-group = "format" },
 ]
+
+[tool.pytest.ini_options]
+# Exclude external_module_test.py & common_faiss_tests.py
+python_files = "test_*.py"
