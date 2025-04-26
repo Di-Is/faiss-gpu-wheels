@@ -121,9 +121,9 @@ $ export CIBW_TEST_COMMAND_LINUX=""
 $ export CIBW_CONTAINER_ENGINE='docker; create_args: --gpus all'
 
 # build faiss-gpu-cu11 wheels
-$ uvx cibuildwheel@2.22.0 variant/gpu-cu11 --output-dir wheelhouse/gpu-cu11
+$ uvx cibuildwheel@2.23.2 variant/gpu-cu11 --output-dir wheelhouse/gpu-cu11
 # build faiss-gpu-cu12 wheels
-$ uvx cibuildwheel@2.22.0 variant/gpu-cu12 --output-dir wheelhouse/gpu-cu12
+$ uvx cibuildwheel@2.23.2 variant/gpu-cu12 --output-dir wheelhouse/gpu-cu12
 ```
 
 When executed, a wheel is created under "{repository root}/wheelhouse/gpu-cuXX".
