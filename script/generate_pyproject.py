@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run --script -q # noqa: EXE003
+#!/usr/bin/env -S uv run --script -q
 """Generate pyproject.toml.
 
 Copyright (c) 2024 Di-Is
