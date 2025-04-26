@@ -11,35 +11,9 @@ from __future__ import annotations
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
-from dagger import CacheVolume, Container, dag
+from dagger import CacheVolume, dag
 
-UV_VERSION: str = "0.5.5"
 UV_CACHE: CacheVolume = dag.cache_volume("uv-cache")
-
-
-def install_uv(
-    ctr: Container, uv_version: str = UV_VERSION, python_preference: str = "only-system"
-) -> Container:
-    """Install uv to container.
-
-    Args:
-        ctr: container
-        uv_version: install target uv version
-        python_preference: uv python preference option
-
-    Returns:
-        uv installed container
-    """
-    return (
-        ctr.with_file(
-            "/usr/local/bin/uv",
-            dag.container().from_(f"ghcr.io/astral-sh/uv:{uv_version}").file("/uv"),
-        )
-        .with_env_variable("UV_PYTHON_PREFERENCE", python_preference)
-        .with_env_variable("UV_HTTP_TIMEOUT", "10000000")
-        .with_mounted_cache("/root/.cache/uv", UV_CACHE)
-        .with_env_variable("UV_LINK_MODE", "copy")
-    )
 
 
 def get_compatible_python(requires_python: str) -> list[str]:
