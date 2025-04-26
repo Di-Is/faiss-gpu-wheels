@@ -25,7 +25,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
       - name: build faiss-${{ matrix.variant }}
-        run: uvx cibuildwheel@2.22.0 variant/${{ matrix.variant }} --output-dir wheelhouse
+        run: uvx cibuildwheel@2.23.2 variant/${{ matrix.variant }} --output-dir wheelhouse
         env:
           CIBW_ENVIRONMENT_LINUX: >
             NJOB=${{ env.NJOB }}
