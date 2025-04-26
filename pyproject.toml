@@ -3,24 +3,6 @@
 # This software is released under the MIT License.
 # http://opensource.org/licenses/mit-license.php
 #
-# The original license for this file is below.
-
-[project]
-name = "faiss-gpu-wheels"
-version = "1.0.0"
-requires-python = "~=3.12.0"
-authors = [{ name = "Di-Is", email = "rhoxbox@gmail.com" }]
-dependencies = []
-
-[dependency-groups]
-lint = ["ruff>=0.7.4"]
-typo = ["typos>=1.27.3"]
-format = ["taplo>=0.9.3"]
-dev = [
-    { include-group = "lint" },
-    { include-group = "typo" },
-    { include-group = "format" },
-]
 
 [tool.pytest.ini_options]
 # Exclude external_module_test.py & common_faiss_tests.py

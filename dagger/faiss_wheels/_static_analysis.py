@@ -8,8 +8,6 @@ http://opensource.org/licenses/mit-license.php
 
 from dagger import Container, Directory, dag
 
-from ._util import install_uv
-
 
 def _build_image(source: Directory) -> Container:
     """Build minimum image.
@@ -18,10 +16,12 @@ def _build_image(source: Directory) -> Container:
         image mounted repository code.
     """
     return (
-        install_uv(dag.container().from_("ubuntu:24.04"), python_preference="only-managed")
+        dag.container()
+        .from_("jdxcode/mise")
         .with_directory("/project", source)
         .with_workdir("/project")
-        .with_exec(["uv", "sync"])
+        .with_exec(["mise", "trust"])
+        .with_exec(["mise", "install"])
     )
 
 
@@ -35,7 +35,7 @@ async def lint(source: Directory) -> str:
         stdout at runtime
     """
     ctr = await _build_image(source).sync()
-    return await ctr.with_exec(["uv", "run", "ruff", "check", "."]).stdout()
+    return await ctr.with_exec(["ruff", "check", "."]).stdout()
 
 
 async def check_python_format(source: Directory) -> str:
@@ -48,7 +48,7 @@ async def check_python_format(source: Directory) -> str:
         stdout at runtime
     """
     ctr = await _build_image(source).sync()
-    return await ctr.with_exec(["uv", "run", "ruff", "format", ".", "--diff"]).stdout()
+    return await ctr.with_exec(["ruff", "format", ".", "--diff"]).stdout()
 
 
 async def check_toml_format(source: Directory) -> str:
@@ -61,9 +61,7 @@ async def check_toml_format(source: Directory) -> str:
         stdout at runtime
     """
     ctr = await _build_image(source).sync()
-    return await ctr.with_exec(
-        ["uv", "run", "taplo", "format", "--diff", "*", "*/*", "*/*/*"]
-    ).stdout()
+    return await ctr.with_exec(["taplo", "format", "--diff", "*", "*/*", "*/*/*"]).stdout()
 
 
 async def check_typo(source: Directory) -> str:
@@ -76,7 +74,7 @@ async def check_typo(source: Directory) -> str:
         stdout at runtime
     """
     ctr = await _build_image(source).sync()
-    return await ctr.with_exec(["uv", "run", "typos", "."]).stdout()
+    return await ctr.with_exec(["typos", "."]).stdout()
 
 
 async def static_analysis(source: Directory) -> None:
