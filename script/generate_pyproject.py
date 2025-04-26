@@ -100,7 +100,6 @@ def cli(args: Args) -> None:
         classifiers = []
         build_envs = {}
         envs = {}
-        test_requires = ["--extra-index-url", "https://download.pytorch.org/whl/cpu"]
         enviromnet_pass = []
         test_command = """
 # CPU Test
@@ -136,10 +135,6 @@ pytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1)) &&
 pytest {project}/faiss/tests/common_faiss_tests.py {project}/faiss/faiss/gpu/test/ -n 2 &&
 pytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py
 """
-        if variant == "gpu-cu11":
-            test_requires = ["--extra-index-url", "https://download.pytorch.org/whl/cu118"]
-        elif variant == "gpu-cu12":
-            test_requires = ["--extra-index-url", "https://download.pytorch.org/whl/cu121"]
     pyproject["project"]["name"] = f"faiss-{args.variant}"
     pyproject["project"]["dependencies"] += dependencies
     pyproject["project"]["optional-dependencies"] = optional_dependencies
@@ -152,12 +147,18 @@ pytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py
     )
     pyproject["tool"]["cibuildwheel"]["linux"]["environment-pass"] += enviromnet_pass
     pyproject["tool"]["cibuildwheel"]["linux"]["environment"] |= envs
-    pyproject["tool"]["cibuildwheel"]["linux"]["test-requires"] += test_requires
+    pyproject["tool"]["cibuildwheel"]["linux"]["before-test"] = (
+        f"uv sync --project variant/{variant} --no-install-project --active"
+    )
     pyproject["tool"]["cibuildwheel"]["linux"] |= {
         "repair-wheel-command": f"auditwheel repair -w {{dest_dir}} {{wheel}} {repair_option}",
         "test-command": test_command,
     }
-
+    pyproject["dependency-groups"]["dev"] = config["test"]["dependencies"]
+    pyproject["tool"]["uv"] = {
+        "index": [{"name": "torch-index", "url": config["test"]["index-url"], "explicit": True}],
+        "sources": {"torch": {"index": "torch-index"}},
+    }
     pyproject_path = variant_path / "pyproject.toml"
     text = """# Copyright (c) 2024 Di-Is
 #

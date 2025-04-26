@@ -38,6 +38,10 @@ classifiers = [
 [project.urls]
 faiss-gpu-wheels = "https://github.com/Di-Is/faiss-gpu-wheels"
 
+[dependency-groups]
+
+[tool.uv]
+
 [tool.scikit-build]
 cmake.source-dir = "../../"
 wheel.exclude = ["*.cxx"]
@@ -54,12 +58,6 @@ skip = "pp* *-musllinux* *i686"
 
 [tool.cibuildwheel.linux]
 before-all = "bash script/build.sh"
-test-requires = [
-    "pytest",
-    "scipy",
-    "torch",
-    "pytest-xdist"
-]
 environment-pass = ["NJOB", "FAISS_OPT_LEVEL"]
 
 [tool.cibuildwheel.linux.environment]

@@ -1,2 +1,6 @@
 [python]
 preload-library = []
+
+[test]
+dependencies = ["pytest", "pytest-xdist", "scipy", "torch"]
+index-url = "https://download.pytorch.org/whl/cpu"

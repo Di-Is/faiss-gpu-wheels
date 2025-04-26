@@ -41,6 +41,17 @@ faiss-gpu-wheels = "https://github.com/Di-Is/faiss-gpu-wheels"
 
 [project.optional-dependencies]
 
+[dependency-groups]
+dev = ["pytest", "pytest-xdist", "scipy", "torch"]
+
+[tool.uv]
+index = [
+    { name = "torch-index", url = "https://download.pytorch.org/whl/cpu", explicit = true },
+]
+
+[tool.uv.sources.torch]
+index = "torch-index"
+
 [tool.scikit-build.cmake]
 source-dir = "../../"
 
@@ -65,15 +76,8 @@ skip = "pp* *-musllinux* *i686"
 
 [tool.cibuildwheel.linux]
 before-all = " script/build.sh"
-test-requires = [
-    "pytest",
-    "scipy",
-    "torch",
-    "pytest-xdist",
-    "--extra-index-url",
-    "https://download.pytorch.org/whl/cpu",
-]
 environment-pass = ["NJOB", "FAISS_OPT_LEVEL"]
+before-test = "uv sync --project variant/cpu --no-install-project --active"
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel} "
 test-command = "\n# CPU Test\npytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) &&\npytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))\n"
 
