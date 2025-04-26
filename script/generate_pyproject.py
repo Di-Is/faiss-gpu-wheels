@@ -168,7 +168,7 @@ pytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py
     pyproject_path.write_text(f"{text}\n" + tomli_w.dumps(pyproject))
 
     _ = subprocess.run(  # noqa: S603
-        ["uv", "run", "taplo", "format", str(pyproject_path)],  # noqa: S607
+        ["taplo", "format", str(pyproject_path)],  # noqa: S607
         check=True,
         capture_output=True,
     )
