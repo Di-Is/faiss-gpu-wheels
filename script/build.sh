@@ -4,7 +4,7 @@ set -eux
 
 # Enable yum cache
 YUM_CACHE_DIR='/host/tmp/.cache/yum'
-cat <<EOF > /etc/yum.conf
+cat <<EOF >/etc/yum.conf
 [main]
 cachedir=${YUM_CACHE_DIR}
 keepcache=1
@@ -33,7 +33,7 @@ fi
 # Build and patch faiss
 FAISS_OPT_LEVEL=${FAISS_OPT_LEVEL:-"generic"}
 CUDA_ARCHITECTURES=${CUDA_ARCHITECTURES:-"70-real;80-real"}
-NJOB=${NJOB:-"3"}
+NJOB=${NJOB:-"$(nproc)"}
 cd faiss
 cmake . -B build \
     -DFAISS_OPT_LEVEL=${FAISS_OPT_LEVEL} \

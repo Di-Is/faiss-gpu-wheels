@@ -7,7 +7,6 @@ on:
     types: [published]
   
 env:
-  NJOB: "32"
   FAISS_OPT_LEVEL: "generic"
   CUDA_ARCHITECTURES: "70-real;80-real"
   
@@ -28,7 +27,6 @@ jobs:
         run: uvx cibuildwheel@2.23.2 variant/${{ matrix.variant }} --output-dir wheelhouse
         env:
           CIBW_ENVIRONMENT_LINUX: >
-            NJOB=${{ env.NJOB }}
             FAISS_OPT_LEVEL=${{ env.FAISS_OPT_LEVEL }}
             FAISS_ENABLE_GPU="ON"
             UV_CACHE_DIR="/host/tmp/.cache/uv"
