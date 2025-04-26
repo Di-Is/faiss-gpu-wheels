@@ -33,7 +33,7 @@ fi
 # Build and patch faiss
 FAISS_OPT_LEVEL=${FAISS_OPT_LEVEL:-"generic"}
 CUDA_ARCHITECTURES=${CUDA_ARCHITECTURES:-"70-real;80-real"}
-NJOB=${NJOB:-"$(nproc)"}
+NJOB=${NJOB:-"$(nproc --all)"}
 cd faiss
 cmake . -B build \
     -DFAISS_OPT_LEVEL=${FAISS_OPT_LEVEL} \
