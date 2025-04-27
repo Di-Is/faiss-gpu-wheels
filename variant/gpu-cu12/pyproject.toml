@@ -53,7 +53,7 @@ fix-cuda = [
 ]
 
 [dependency-groups]
-dev = ["pytest", "pytest-xdist", "scipy", "torch"]
+dev = ["pytest", "pytest-xdist", "scipy", "torch<2.7.0"]
 
 [tool.uv]
 index = [
@@ -90,7 +90,7 @@ before-all = "CUDA_VERSION=\"12.1.1\" script/build.sh"
 environment-pass = ["NJOB", "FAISS_OPT_LEVEL", "CUDA_ARCHITECTURES"]
 before-test = "uv sync --project variant/gpu-cu12 --no-install-project --active"
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel} --exclude libcudart.so.12 --exclude libcublas.so.12 --exclude libcublasLt.so.12"
-test-command = "\n# CPU Test\npytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) &&\npytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1)) &&\n# GPU Test\npytest {project}/faiss/tests/common_faiss_tests.py {project}/faiss/faiss/gpu/test/ -n 2 &&\npytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py\n"
+test-command = "\n# CPU Test\npytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) &&\npytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1)) &&\n# GPU Test\npytest {project}/faiss/tests/common_faiss_tests.py {project}/faiss/faiss/gpu/test/ &&\npytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py\n"
 
 [tool.cibuildwheel.linux.environment]
 FAISS_ENABLE_GPU = "ON"
