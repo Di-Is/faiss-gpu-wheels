@@ -12,6 +12,7 @@ env:
   
 jobs:
   build-wheel:
+    if: ${{ github.event_name == 'release' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'build')) }}
     runs-on: self-hosted
     strategy:
       fail-fast: false
