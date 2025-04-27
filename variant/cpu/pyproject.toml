@@ -83,3 +83,6 @@ repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel} "
 test-command = "\n# CPU Test\npytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) &&\npytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))\n"
 
 [tool.cibuildwheel.linux.environment]
+UV_CACHE_DIR = "/host/tmp/.cache/uv"
+UV_LINK_MODE = "copy"
+OMP_NUM_THREADS = "1"

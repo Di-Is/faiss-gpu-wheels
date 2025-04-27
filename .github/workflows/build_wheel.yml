@@ -26,13 +26,6 @@ jobs:
       - name: build faiss-${{ matrix.variant }}
         run: uvx cibuildwheel@2.23.2 variant/${{ matrix.variant }} --output-dir wheelhouse
         env:
-          CIBW_ENVIRONMENT_LINUX: >
-            FAISS_OPT_LEVEL=${{ env.FAISS_OPT_LEVEL }}
-            FAISS_ENABLE_GPU="ON"
-            UV_CACHE_DIR="/host/tmp/.cache/uv"
-            UV_LINK_MODE="copy"
-            UV_CONCURRENT_DOWNLOADS="1"
-            OMP_NUM_THREADS="1"
           CIBW_CONTAINER_ENGINE: 'docker; create_args: --gpus all'
       - uses: actions/upload-artifact@v4
         with:
