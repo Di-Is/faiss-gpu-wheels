@@ -8,3 +8,8 @@ preload-library = [
     { "group" = "cuda", "package" = "nvidia-cublas-cu11", "library" = "libcublas.so.11" },
     { "group" = "cuda", "package" = "nvidia-cublas-cu11", "library" = "libcublasLt.so.11" },
 ]
+
+[test]
+# torch 2.7.0 is not compatible with python 3.9
+dependencies = ["pytest", "pytest-xdist", "scipy", "torch<2.7.0"]
+index-url = "https://download.pytorch.org/whl/cu118"
