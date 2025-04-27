@@ -78,6 +78,7 @@ skip = "pp* *-musllinux* *i686"
 before-all = " script/build.sh"
 environment-pass = ["NJOB", "FAISS_OPT_LEVEL"]
 before-test = "uv sync --project variant/cpu --no-install-project --active"
+test-extras = []
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel} "
 test-command = "\n# CPU Test\npytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) &&\npytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))\n"
 

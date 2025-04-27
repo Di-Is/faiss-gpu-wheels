@@ -101,6 +101,7 @@ def cli(args: Args) -> None:
         build_envs = {}
         envs = {}
         enviromnet_pass = []
+        test_extras = []
         test_command = """
 # CPU Test
 pytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) &&
@@ -120,6 +121,7 @@ pytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))
                 f"nvidia-cublas-cu{major}=={cublas_ver}",
             ]
         }
+        test_extras = ["fix-cuda"]
         classifiers = [
             "Environment :: GPU :: NVIDIA CUDA",
             f"Environment :: GPU :: NVIDIA CUDA :: {major}",
@@ -150,6 +152,7 @@ pytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py
     pyproject["tool"]["cibuildwheel"]["linux"]["before-test"] = (
         f"uv sync --project variant/{variant} --no-install-project --active"
     )
+    pyproject["tool"]["cibuildwheel"]["linux"]["test-extras"] = test_extras
     pyproject["tool"]["cibuildwheel"]["linux"] |= {
         "repair-wheel-command": f"auditwheel repair -w {{dest_dir}} {{wheel}} {repair_option}",
         "test-command": test_command,
