@@ -94,4 +94,7 @@ repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel} --exclude libcud
 test-command = "\n# CPU Test\npytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) &&\npytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1)) &&\n# GPU Test\npytest {project}/faiss/tests/common_faiss_tests.py {project}/faiss/faiss/gpu/test/ &&\npytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py\n"
 
 [tool.cibuildwheel.linux.environment]
+UV_CACHE_DIR = "/host/tmp/.cache/uv"
+UV_LINK_MODE = "copy"
+OMP_NUM_THREADS = "1"
 FAISS_ENABLE_GPU = "ON"

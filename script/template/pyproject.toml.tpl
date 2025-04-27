@@ -61,3 +61,6 @@ before-all = "bash script/build.sh"
 environment-pass = ["NJOB", "FAISS_OPT_LEVEL"]
 
 [tool.cibuildwheel.linux.environment]
+UV_CACHE_DIR='/host/tmp/.cache/uv'
+UV_LINK_MODE='copy'
+OMP_NUM_THREADS='1'
