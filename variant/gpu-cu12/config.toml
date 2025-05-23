@@ -1,6 +1,6 @@
 [cuda]
 version = "12.1.1"
-target-archs = "70-real;80-real"
+target-archs = "70-real;80-real;90-real"
 
 [python]
 preload-library = [
