@@ -37,7 +37,17 @@ def _load_shared_library(preload_target: _PreloadTarget) -> None:
         preload_target: preload target
     """
     logger.debug("Try to load shared library in package.", extra=preload_target)
-    for file in distribution(preload_target["package"]).files:
+
+    package = preload_target.get("package", None)
+    if package is None:
+        ctypes.CDLL(preload_target["library"], mode=ctypes.RTLD_GLOBAL)
+        logger.debug(
+            "Finish to load shared library from system, as no package is specified.",
+            extra=preload_target,
+        )
+        return
+
+    for file in distribution(package).files:
         if preload_target["library"] == file.name:
             path = str(file.locate())
             break
