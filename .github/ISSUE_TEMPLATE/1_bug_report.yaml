@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        **⚠️ IMPORTANT: This project only supports Volta (7.0), Ampere (8.0), and Ada Lovelace (8.9) GPU architectures.**
+        **⚠️ IMPORTANT: This project supports Compute capability 7.0-8.9 (Volta, Turing, Ampere, Ada Lovelace) GPU architectures.**
         Please read the [README.md](https://github.com/Di-Is/faiss-gpu-wheels) first.
 
   - type: textarea
