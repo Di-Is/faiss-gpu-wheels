@@ -1,0 +1,56 @@
+name: Question
+description: Ask a question about faiss-gpu-wheels
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **⚠️ IMPORTANT: This project only supports Volta (7.0), Ampere (8.0), and Ada Lovelace (8.9) GPU architectures.**
+        Please read the [README.md](https://github.com/Di-Is/faiss-gpu-wheels) first.
+
+  - type: textarea
+    attributes:
+      label: Question
+      description: Describe your question in detail.
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Platform
+      description: What OS and architecture? (see `uname -orsm`)
+      placeholder: e.g., Ubuntu 22.04 x86_64, macOS 14 arm64
+    validations:
+      required: false
+
+  - type: input
+    attributes:
+      label: GPU model
+      description: GPU model if using GPU (see `nvidia-smi`)
+      placeholder: e.g., NVIDIA RTX 3080, NVIDIA A100-40GB
+    validations:
+      required: false
+
+  - type: input
+    attributes:
+      label: NVIDIA Driver version
+      description: Driver version if using GPU (see `nvidia-smi`)
+      placeholder: e.g., 535.104.12
+    validations:
+      required: false
+
+  - type: input
+    attributes:
+      label: Package version
+      description: Which package and version? (see `pip show faiss-gpu-cu11` or `faiss-gpu-cu12`)
+      placeholder: e.g., faiss-gpu-cu12 1.11.0
+    validations:
+      required: false
+
+  - type: input
+    attributes:
+      label: CUDA runtime version
+      description: Version of nvidia-cuda-runtime if using GPU (see `pip show nvidia-cuda-runtime-cu11` or `cu12`)
+      placeholder: e.g., 12.1.105
+    validations:
+      required: false
