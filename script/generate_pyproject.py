@@ -144,9 +144,8 @@ pytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py
     repair_option = " ".join(
         [i for v in config["python"]["preload-library"] for i in ["--exclude", v["library"]]]
     )
-    pyproject["tool"]["cibuildwheel"]["linux"]["before-all"] = (
-        f"{' '.join([f'{k}="{v}"' for k, v in build_envs.items()])} script/build.sh"
-    )
+    env_vars = " ".join([f'{k}="{v}"' for k, v in build_envs.items()])
+    pyproject["tool"]["cibuildwheel"]["linux"]["before-all"] = f"{env_vars} script/build.sh"
     pyproject["tool"]["cibuildwheel"]["linux"]["environment-pass"] += enviromnet_pass
     pyproject["tool"]["cibuildwheel"]["linux"]["environment"] |= envs
     pyproject["tool"]["cibuildwheel"]["linux"]["before-test"] = (
