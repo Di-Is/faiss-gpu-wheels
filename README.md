@@ -102,6 +102,25 @@ pip install faiss-gpu-cu11
 
 **Warning**: When installing without `[fix-cuda]`, pip may resolve to a newer CUDA version that requires a newer driver than you have installed. Always verify driver compatibility before installation.
 
+### Advanced: Using System CUDA Libraries
+
+If you need to use system-installed CUDA instead of PyPI CUDA packages, you can bypass the automatic CUDA loading:
+
+1. **Exclude PyPI CUDA dependencies** using your package manager (e.g., [uv](https://github.com/astral-sh/uv/issues/7214), [pdm](https://pdm-project.org/en/latest/usage/config/#exclude-specific-packages-and-their-dependencies-from-the-lock-file))
+2. **Set environment variable**: `_FAISS_WHEEL_DISABLE_CUDA_PRELOAD=1`
+3. **Ensure CUDA libraries are accessible** via `LD_LIBRARY_PATH`
+
+Example with uv (workaround):
+
+```toml
+# In pyproject.toml
+[tool.uv]
+override-dependencies = [
+    "nvidia-cuda-runtime-cu11==0.0.0; sys_platform == 'never'",
+    "nvidia-cublas-cu11==0.0.0; sys_platform == 'never'",
+]
+```
+
 ## Versioning
 
 * Follows the original faiss repository versioning (e.g., `1.11.0`)
