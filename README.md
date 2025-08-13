@@ -7,129 +7,140 @@ This repository is based on [kyamagu/faiss-wheels](https://github.com/kyamagu/fa
 
 ## Overview
 
-This repository provides scripts to build gpu wheels for the [faiss](https://github.com/facebookresearch/faiss) library.
-Distribute the `faiss-gpu-cuXX` package to PyPI using the contents of this repository. 
+This repository provides scripts to build GPU-enabled wheels for the [faiss](https://github.com/facebookresearch/faiss) library.
+Distributes `faiss-gpu-cuXX` packages to PyPI using the contents of this repository.
 
-* Builds CUDA 11.8+/CUDA 12.1+ compatible wheels.
-  * Support Volta\~Ada Lovelace architecture GPU (Compute Capability 7.0\~8.9).
-  * **Dynamically linked to CUDA Runtime and cuBLAS libraries published in PyPI.**
-* Bundles OpenBLAS in Linux.
+### Key Features
 
+* **No local CUDA installation required** - Dynamically links to CUDA Runtime and cuBLAS libraries from PyPI
+* Builds CUDA 11.8+ and CUDA 12.1+ compatible wheels
+* Supports Volta to Ada Lovelace architecture GPUs (Compute Capability 7.0–8.9)
+* Bundles OpenBLAS in Linux
+* Reduces wheel file size through dynamic linking instead of static compilation
+
+## Important Requirements
+
+The published `faiss-gpu-cuXX` packages require proper system setup that cannot be managed by pip. It is your responsibility to prepare a suitable environment:
+
+1. **NVIDIA Driver**: Your host must have a CUDA-compatible NVIDIA driver installed
+   * The minimum driver version depends on the CUDA version that gets installed
+   * NVIDIA drivers are backward compatible with older CUDA versions ([See CUDA Compatibility Documentation](https://docs.nvidia.com/deploy/cuda-compatibility/))
+
+2. **GPU Architecture**: Your GPU must be compatible (Compute Capability 7.0–8.9)
+   * Supported: Volta, Turing, Ampere, Ada Lovelace
+
+3. **Library Compatibility**: If you install multiple CUDA-dependent libraries (e.g., PyTorch) in the same environment, they must link to the same CUDA version
+
+## GPU Architecture Support for PyPI Packages
+
+### Support Policy for `faiss-gpu-cu11` and `faiss-gpu-cu12`
+
+**Note**: This is an **unofficial, personal development project** with limited computational resources. Due to these constraints, comprehensive testing across all NVIDIA GPU architectures is not feasible. The pre-built `faiss-gpu-cu11` and `faiss-gpu-cu12` packages on PyPI aim to support the same GPU architecture range (Compute Capability 7.0–8.9) as the official Faiss repository.
+
+### For Unsupported GPU Architectures
+
+If you have a GPU architecture that is not supported by these pre-built wheels:
+
+1. **Official Faiss**: Follow the [official Faiss repository build instructions](https://github.com/facebookresearch/faiss/blob/main/INSTALL.md)
+2. **Build from Source**: Use this repository's code to build wheels for your specific architecture (see [Building from Source](#building-from-source) section)
 
 ## Installation
 
-The `faiss-gpu-cu11` and `faiss-gpu-cu12` wheels built for CUDA11 and CUDA12 are available on PyPI.
-Install one or the other depending on your environment.
-These wheels dynamically link to the CUDA Runtime and cuBLAS shared libraries. This approach helps to reduce the file size of the wheels.
+The `faiss-gpu-cu11` and `faiss-gpu-cu12` wheels are available on PyPI. Choose the appropriate version for your CUDA environment.
 
-`faiss-gpu-cuXX(XX=11 or 12)` has dependencies on CUDA Runtime (`nvidia-cuda-runtime-cuXX`) and cuBLAS (`nvidia-cublas-cuXX`) released by PyPI, and links shared libraries in these packages. 
-**Therefore, there is no need to install CUDA on your host(system).**
-
-### <span style="color: red; ">Caution</span>
-
-The published `faiss-gpu-cuXX` package requires proper setup of system, hardware, and other dependencies that cannot be managed by the package manager (e.g. pip).
-It is the responsibility of the user of this package to prepare an environment suitable for its operation.
-
-Here are the main requirements that such an environment should meet (Other conditions may be hidden.)
-
-1. the host environment must have a CUDA-compatible Nvidia Driver installed, as required by `faiss-gpu-cuXX` (see below for details)
-2. the GPU architecture of the execution environment must be compatible with `faiss-gpu-cuXX` (see below for details)
-3. if you install `faiss-gpu-cuXX` and another library (e.g. Pytorch) that uses dynamically linked CUDA in the same environment, they must be linked to the same CUDA shared library.
-
-### Wheel for CUDA12
-
-`faiss-gpu-cu12` is a package built using CUDA Toolkit 12.1.
-The following command will install faiss and the CUDA Runtime and cuBLAS for CUDA 12.1 used at build time.
+### For CUDA 12
 
 ```bash
-# install CUDA 12.1 at the same time
-$ pip install faiss-gpu-cu12[fix-cuda]
+# Install with fixed CUDA 12.1 (requires NVIDIA Driver ≥R530)
+pip install 'faiss-gpu-cu12[fix-cuda]'
+
+# Install with CUDA 12.X (X≥1) - allows flexibility but driver requirement varies
+pip install faiss-gpu-cu12
 ```
 
-**Requirements**
-* OS: Linux
-  * arch: x86_64
-  * glibc >=2.17
-* Nvidia driver: >=R530 (specify `fix-cuda` extra during installation)
-* GPU architectures: Volta\~Ada Lovelace (Compute Capability: 7.0\~8.9)
+**Details:**
 
-**Advanced**
+* `faiss-gpu-cu12` is built with CUDA Toolkit 12.1 and maintains minor version compatibility
+* With `[fix-cuda]`: Installs exactly CUDA 12.1, requiring NVIDIA Driver ≥R530
+* Without `[fix-cuda]`: Allows any CUDA 12.X (X≥1), driver requirement depends on the actual CUDA version installed
+  * For example: CUDA 12.4 requires Driver ≥R550
+* Use without `[fix-cuda]` when integrating with other CUDA-dependent packages (e.g., PyTorch with CUDA 12.4)
 
-The `faiss-gpu-cu12` package (the binaries contained in it) is minor version compatible with CUDA and will work dynamically linked with CUDA 12.X (X>=1).
+**System Requirements:**
 
-Installation of the CUDA runtime and cuBLAS is allowed to the extent that minor version compatibility is maintained by excluding the `fix-cuda` extra.
+* OS: Linux x86_64 (glibc ≥2.17)
+* GPU: Compute Capability 7.0–8.9
 
-This is useful when coexisting this package with a package that has a dependency on the CUDA Toolkit used at build time, such as Pytorch or Tensorflow.
-
-The installation commands are as follows.
+### For CUDA 11
 
 ```bash
-# install CUDA 12.X(X>=1) at the same time
-$ pip install faiss-gpu-cu12
+# Install with CUDA 11.8 (requires NVIDIA Driver ≥R520)
+pip install faiss-gpu-cu11[fix-cuda]
+
+# Same as above (CUDA 11.8 is the final version)
+pip install faiss-gpu-cu11
 ```
 
-If you install the `faiss-gpu-cuXX` package in this way, CUDA may be updated due to lock file updates, etc.
+**Details:**
 
-Please note that this may cause an error depending on the compatibility with the driver. (Basically, to use a new CUDA, the driver must also be updated).
+* `faiss-gpu-cu11` is built with CUDA Toolkit 11.8
+* Both commands install CUDA 11.8 since no newer CUDA 11.X versions exist
+* Requires NVIDIA Driver ≥R520
 
+**System Requirements:**
 
-### Wheel for CUDA11
+* OS: Linux x86_64 (glibc ≥2.17)
+* GPU: Compute Capability 7.0–8.9
 
-`faiss-gpu-cu11` is a package built using CUDA Toolkit 11.8.
-The following command will install faiss and the CUDA Runtime and cuBLAS for CUDA 11.8 used at build time.
+### Driver Compatibility Reference
+
+| CUDA Version | Minimum Driver Version |
+|--------------|------------------------|
+| CUDA 11.8    | ≥R520 (520.61.05)      |
+| CUDA 12.1    | ≥R530 (530.30.02)      |
+| CUDA 12.2+   | Check [NVIDIA Documentation](https://docs.nvidia.com/deploy/cuda-compatibility/) |
+
+**Warning**: When installing without `[fix-cuda]`, pip may resolve to a newer CUDA version that requires a newer driver than you have installed. Always verify driver compatibility before installation.
+
+## Versioning
+
+* Follows the original faiss repository versioning (e.g., `1.11.0`)
+* Patches specific to this repository use `postN` suffix (e.g., `1.11.0.post1`)
+
+## Building from Source
+
+Build `faiss-gpu-cu11` and `faiss-gpu-cu12` wheels using [cibuildwheel](https://github.com/pypa/cibuildwheel).
+
+### Build Configuration
 
 ```bash
-# install CUDA 11.8 at the same time
-$ pip install faiss-gpu-cu11[fix-cuda]
+# Configure build parameters
+export NJOB="32"                          # Number of parallel build jobs
+export FAISS_OPT_LEVEL="generic"          # Options: generic, avx2, avx512
+export CUDA_ARCHITECTURES="70-real;80-real"  # Target GPU architectures
+
+# For builds without GPU testing
+export CIBW_TEST_COMMAND_LINUX=""
+
+# For builds with GPU testing (requires NVIDIA Docker)
+export CIBW_CONTAINER_ENGINE='docker; create_args: --gpus all'
+# Note: GPU testing requires Docker with NVIDIA Container Toolkit configured
 ```
 
-**Requirements**
-* OS: Linux
-  * arch: x86_64
-  * glibc >=2.17
-* Nvidia driver: >=R520 (specify `fix-cuda` extra during installation)
-* GPU architectures: Volta\~Ada Lovelace (Compute Capability: 7.0\~8.9)
-
-**Advanced**
-
-Since CUDA 11.8 is the final version of the CUDA 11 series, the results are the same with or without the `fix-cuda` extras.
+### Build Commands
 
 ```bash
-# install CUDA 11.X(X>=8) at the same time
-$ pip install faiss-gpu-cu11
+# Build faiss-gpu-cu11 wheels
+uvx cibuildwheel@2.23.2 variant/gpu-cu11 --output-dir wheelhouse/gpu-cu11
+
+# Build faiss-gpu-cu12 wheels
+uvx cibuildwheel@2.23.2 variant/gpu-cu12 --output-dir wheelhouse/gpu-cu12
 ```
 
-### Versioning rule
+Wheels will be created in `{repository_root}/wheelhouse/gpu-cuXX/`.
 
-Basically, it follows the versioning rules of the original faiss repository.
-If there is a defect in the changed part in this repository, it will be updated with `postN` (N>=1) at the end of the version.
+### Build Requirements
 
-## Usage
-
-You can build `faiss-gpu-cu11` and `faiss-gpu-cu12` wheels using [cibuildwheel](https://github.com/pypa/cibuildwheel).
-
-```bash
-# Number of processes used when building faiss
-$ export NJOB="32"
-# Optimization level of faiss
-$ export FAISS_OPT_LEVEL="generic"
-# Build target nvidia gpu architectures
-$ export CUDA_ARCHITECTURES="70-real;80-real"
-# If no tests are performed at build time for cibuildwheel
-$ export CIBW_TEST_COMMAND_LINUX=""
-# If tests are performed at build time for cibuildwheel
-$ export CIBW_CONTAINER_ENGINE='docker; create_args: --gpus all'
-
-# build faiss-gpu-cu11 wheels
-$ uvx cibuildwheel@2.23.2 variant/gpu-cu11 --output-dir wheelhouse/gpu-cu11
-# build faiss-gpu-cu12 wheels
-$ uvx cibuildwheel@2.23.2 variant/gpu-cu12 --output-dir wheelhouse/gpu-cu12
-```
-
-When executed, a wheel is created under "{repository root}/wheelhouse/gpu-cuXX".
-
-**Requirements**
-* OS: Linux
-  * arch: x86_64
-* Nvidia container toolkit (If test is performed)
-* Nvidia driver: >=R530 (If test is performed)
+* OS: Linux x86_64
+* NVIDIA Container Toolkit (if running tests)
+* NVIDIA Driver: ≥R530 (if running tests with CUDA 12)
