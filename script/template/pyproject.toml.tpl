@@ -6,13 +6,13 @@
 # This file is created by the `generate_pyproject.py`. 
 
 [build-system]
-requires = ["scikit-build-core", "swig", "oldest-supported-numpy"]
+requires = ["scikit-build-core", "swig", "numpy>=2,<3"]
 build-backend = "scikit_build_core.build"
 
 [project]
 name = "faiss"
 version = "1.12.0"
-dependencies = ["numpy<2", "packaging"]
+dependencies = ["numpy>=2,<3", "packaging"]
 requires-python = ">=3.10,<3.14"
 authors = [{ name = "Di-Is", email = "rhoxbox@gmail.com" }]
 description = "A library for efficient similarity search and clustering of dense vectors."
