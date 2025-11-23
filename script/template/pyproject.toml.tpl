@@ -13,7 +13,7 @@ build-backend = "scikit_build_core.build"
 name = "faiss"
 version = "1.12.0"
 dependencies = ["numpy<2", "packaging"]
-requires-python = ">=3.9,<3.13"
+requires-python = ">=3.10,<3.14"
 authors = [{ name = "Di-Is", email = "rhoxbox@gmail.com" }]
 description = "A library for efficient similarity search and clustering of dense vectors."
 license = { file = "../../LICENSE" }
@@ -28,10 +28,10 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3 :: Only"
 ]
 
