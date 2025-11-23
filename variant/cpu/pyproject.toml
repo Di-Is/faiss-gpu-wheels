@@ -42,7 +42,7 @@ faiss-gpu-wheels = "https://github.com/Di-Is/faiss-gpu-wheels"
 [project.optional-dependencies]
 
 [dependency-groups]
-dev = ["pytest", "pytest-xdist", "scipy", "torch<2.7.0"]
+dev = ["pytest", "pytest-xdist", "scipy", "torch"]
 
 [tool.uv]
 index = [

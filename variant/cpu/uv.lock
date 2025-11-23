@@ -64,7 +64,7 @@ dev = [
     { name = "pytest" },
     { name = "pytest-xdist" },
     { name = "scipy" },
-    { name = "torch", specifier = "<2.7.0", index = "https://download.pytorch.org/whl/cpu" },
+    { name = "torch", index = "https://download.pytorch.org/whl/cpu" },
 ]
 
 [[package]]

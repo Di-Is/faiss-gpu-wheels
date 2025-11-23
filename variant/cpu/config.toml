@@ -2,6 +2,5 @@
 preload-library = []
 
 [test]
-# torch 2.7.0 is not compatible with python 3.9
-dependencies = ["pytest", "pytest-xdist", "scipy", "torch<2.7.0"]
+dependencies = ["pytest", "pytest-xdist", "scipy", "torch"]
 index-url = "https://download.pytorch.org/whl/cpu"

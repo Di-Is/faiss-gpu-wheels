@@ -53,7 +53,7 @@ fix-cuda = [
 ]
 
 [dependency-groups]
-dev = ["pytest", "pytest-xdist", "scipy", "torch<2.7.0"]
+dev = ["pytest", "pytest-xdist", "scipy", "torch"]
 
 [tool.uv]
 index = [
