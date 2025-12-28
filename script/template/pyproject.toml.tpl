@@ -11,7 +11,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "faiss"
-version = "1.13.0"
+version = "1.13.1"
 dependencies = ["numpy>=2,<3", "packaging"]
 requires-python = ">=3.10,<3.14"
 authors = [{ name = "Di-Is", email = "rhoxbox@gmail.com" }]
