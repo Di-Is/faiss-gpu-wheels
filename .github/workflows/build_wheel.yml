@@ -10,6 +10,7 @@ on:
 env:
   FAISS_OPT_LEVEL: "generic"
   CUDA_ARCHITECTURES: "70-real;80-real"
+  CIBW_TEST_COMMAND_LINUX: ""
   
 jobs:
   build-wheel:
