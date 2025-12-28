@@ -13,7 +13,7 @@ env:
 jobs:
   build-wheel:
     if: ${{ github.event_name == 'release' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'build')) }}
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -26,8 +26,6 @@ jobs:
         uses: astral-sh/setup-uv@v5
       - name: build faiss-${{ matrix.variant }}
         run: uvx cibuildwheel@2.23.2 variant/${{ matrix.variant }} --output-dir wheelhouse
-        env:
-          CIBW_CONTAINER_ENGINE: 'docker; create_args: --gpus all'
       - uses: actions/upload-artifact@v4
         with:
           name: wheel-${{ matrix.variant }}
@@ -40,6 +38,8 @@ jobs:
     permissions:
       id-token: write
     if: github.event_name == 'release' && github.event.action == 'published'
+    environment:
+      name: pypi-publish
     steps:
       - uses: actions/download-artifact@v4
         with:
