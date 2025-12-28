@@ -9,17 +9,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: get engineVersion
-        id: get_engine_version
-        run: |
-          engine_version=$(jq -r '.engineVersion' dagger.json)
-          echo "engine_version=${engine_version}" >> $GITHUB_ENV
-
-      - name: static analysis
-        uses: dagger/dagger-for-github@v5
-        with:
-          verb: call
-          args: "--source . static-analysis"
-          cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
-          version: ${{ env.engine_version }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      - name: Install tools
+        run: uv tool install ruff typos taplo
+      - name: Lint
+        run: ruff check .
+      - name: Check Python formatting
+        run: ruff format . --diff
+      - name: Check TOML formatting
+        run: taplo fmt --check
+      - name: Typos
+        run: typos
