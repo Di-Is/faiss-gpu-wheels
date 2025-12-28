@@ -3,6 +3,7 @@ name: Build & publish wheel
 on:
   workflow_call:
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
   release:
     types: [published]
   
