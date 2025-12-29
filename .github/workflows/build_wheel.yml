@@ -75,10 +75,9 @@ jobs:
           if [[ "${{ matrix.variant }}" == "gpu-cu11" || "${{ matrix.variant }}" == "gpu-cu12" ]]; then
             extras="[fix-cuda]"
           fi
-          venv_python="variant/${{ matrix.variant }}/.venv/bin/python"
-          "${venv_python}" -m pip install "${wheel_path}${extras}"
-          "${venv_python}" -m pytest faiss/tests/ -n $((`nproc --all`/5+1))
-          "${venv_python}" -m pytest faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))
+          uv run --project variant/${{ matrix.variant }} --with "${wheel_path}${extras}" bash -lc \
+            "pytest faiss/tests/ -n $((`nproc --all`/5+1)) && \
+             pytest faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))"
 
   publish:
     name: upload wheel to PyPI
