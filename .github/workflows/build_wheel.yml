@@ -77,8 +77,8 @@ jobs:
             extras="[fix-cuda]"
           fi
           source "variant/${{ matrix.variant }}/.venv/bin/activate"
-          uv run --active --no-project --no-sync --find-links wheelhouse \
-            --with "${package_name}${extras}" bash -lc \
+          uv run --active --no-project --no-sync \
+            --with "${wheel_path}${extras}" bash -lc \
             "pytest faiss/tests/ -n $((`nproc --all`/5+1)) && \
              pytest faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))"
 
