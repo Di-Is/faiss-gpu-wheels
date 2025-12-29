@@ -1,6 +1,5 @@
 [tools]
 uv = "0.9.10"
-dagger = "0.18.5"
 typos = "1.31.1"
 ruff = "0.14.5"
 taplo = "0.9.3"
