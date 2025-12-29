@@ -9,17 +9,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: get engineVersion
-        id: get_engine_version
+      - name: Set up mise
+        uses: jdx/mise-action@v2
+      - name: Install tools
         run: |
-          engine_version=$(jq -r '.engineVersion' dagger.json)
-          echo "engine_version=${engine_version}" >> $GITHUB_ENV
-
-      - name: static analysis
-        uses: dagger/dagger-for-github@v5
-        with:
-          verb: call
-          args: "--source . static-analysis"
-          cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
-          version: ${{ env.engine_version }}
+          mise trust
+          mise install
+      - name: Ruff lint
+        run: ruff check .
+      - name: Ruff format check
+        run: ruff format . --diff
+      - name: Taplo format check
+        run: taplo format --diff * */* */*/*
+      - name: Typos check
+        run: typos .
