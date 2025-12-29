@@ -33,6 +33,52 @@ jobs:
           name: wheel-${{ matrix.variant }}
           path: ./wheelhouse/*.whl
 
+  test-cpu:
+    name: cpu tests (wheel)
+    needs: ["build-wheel"]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: ["gpu-cu11", "gpu-cu12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    env:
+      OMP_NUM_THREADS: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      - name: Download wheel
+        uses: actions/download-artifact@v4
+        with:
+          name: wheel-${{ matrix.variant }}
+          path: wheelhouse
+      - name: Install deps, wheel, and run CPU tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv sync --project variant/${{ matrix.variant }} --no-install-project -p ${{ matrix.python-version }}
+          py_version="${{ matrix.python-version }}"
+          py_tag="cp${py_version/./}"
+          wheel_path="$(ls wheelhouse/*${py_tag}*.whl | head -n 1)"
+          if [[ -z "${wheel_path}" ]]; then
+            echo "Wheel not found for ${py_tag} in wheelhouse" >&2
+            exit 1
+          fi
+          extras=""
+          if [[ "${{ matrix.variant }}" == "gpu-cu11" || "${{ matrix.variant }}" == "gpu-cu12" ]]; then
+            extras="[fix-cuda]"
+          fi
+          uv pip install --project variant/${{ matrix.variant }} "${wheel_path}${extras}"
+          uv run --project variant/${{ matrix.variant }} pytest faiss/tests/ -n $((`nproc --all`/5+1))
+          uv run --project variant/${{ matrix.variant }} pytest faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))
+
   publish:
     name: upload wheel to PyPI
     needs: ["build-wheel"]
