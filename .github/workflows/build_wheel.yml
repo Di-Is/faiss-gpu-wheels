@@ -76,7 +76,7 @@ jobs:
           if [[ "${{ matrix.variant }}" == "gpu-cu11" || "${{ matrix.variant }}" == "gpu-cu12" ]]; then
             extras="[fix-cuda]"
           fi
-          uv run --project variant/${{ matrix.variant }} --no-index --find-links wheelhouse \
+          uv run --project variant/${{ matrix.variant }} --find-links wheelhouse \
             --with "${package_name}${extras}" bash -lc \
             "pytest faiss/tests/ -n $((`nproc --all`/5+1)) && \
              pytest faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))"
