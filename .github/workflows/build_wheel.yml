@@ -71,11 +71,13 @@ jobs:
             echo "Wheel not found for ${py_tag} in wheelhouse" >&2
             exit 1
           fi
+          package_name="faiss-${{ matrix.variant }}"
           extras=""
           if [[ "${{ matrix.variant }}" == "gpu-cu11" || "${{ matrix.variant }}" == "gpu-cu12" ]]; then
             extras="[fix-cuda]"
           fi
-          uv run --project variant/${{ matrix.variant }} --with "${wheel_path}${extras}" bash -lc \
+          uv run --project variant/${{ matrix.variant }} --no-index --find-links wheelhouse \
+            --with "${package_name}${extras}" bash -lc \
             "pytest faiss/tests/ -n $((`nproc --all`/5+1)) && \
              pytest faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))"
 
