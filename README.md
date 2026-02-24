@@ -37,6 +37,12 @@ The published `faiss-gpu-cuXX` packages require proper system setup that cannot 
 
 **Note**: This is an **unofficial, personal development project** with limited computational resources. Due to these constraints, comprehensive testing across all NVIDIA GPU architectures is not feasible. The pre-built `faiss-gpu-cu11` and `faiss-gpu-cu12` packages on PyPI aim to support the same GPU architecture range (Compute Capability 7.0–8.9) as the official Faiss repository.
 
+### Sponsoring New GPU Architecture Support
+
+Adding support for a new GPU architecture (e.g., Hopper, Blackwell) requires dedicated hardware for building and testing. NVIDIA GPUs have limited compatibility across compute capabilities — binaries built for one architecture do not necessarily work correctly on another. Distributing untested wheels is not an option.
+
+This is an unfunded personal project. If you or your organization need support for an architecture outside the current range, please consider [sponsoring this project](https://github.com/sponsors/Di-Is) to help cover the hardware and infrastructure costs.
+
 ### For Unsupported GPU Architectures
 
 If you have a GPU architecture that is not supported by these pre-built wheels:

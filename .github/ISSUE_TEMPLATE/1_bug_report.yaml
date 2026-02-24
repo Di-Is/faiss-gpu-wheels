@@ -8,6 +8,8 @@ body:
         **⚠️ IMPORTANT: This project supports Compute capability 7.0-8.9 (Volta, Turing, Ampere, Ada Lovelace) GPU architectures.**
         Please read the [README.md](https://github.com/Di-Is/faiss-gpu-wheels) first.
 
+        Issues related to unsupported GPU architectures (e.g., Hopper, Blackwell) are not bugs. Adding new architectures requires dedicated hardware for testing. Please consider [sponsoring this project](https://github.com/sponsors/Di-Is) if you need support for additional architectures.
+
   - type: textarea
     attributes:
       label: Summary
