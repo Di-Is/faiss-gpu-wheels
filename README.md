@@ -41,7 +41,7 @@ The published `faiss-gpu-cuXX` packages require proper system setup that cannot 
 
 Adding support for a new GPU architecture (e.g., Hopper, Blackwell) requires dedicated hardware for building and testing. NVIDIA GPUs have limited compatibility across compute capabilities — binaries built for one architecture do not necessarily work correctly on another. Distributing untested wheels is not an option.
 
-This is an unfunded personal project. If you or your organization need support for an architecture outside the current range, please consider [sponsoring this project](https://github.com/sponsors/Di-Is) to help cover the hardware and infrastructure costs.
+This is an unfunded personal project. If you or your organization need support for an architecture outside the current range, please consider [sponsoring this project](https://github.com/sponsors/Di-Is) to help cover the hardware and infrastructure costs. For ongoing discussion and status updates, see [Support for New GPU Architectures](https://github.com/Di-Is/faiss-gpu-wheels/discussions/120).
 
 ### For Unsupported GPU Architectures
 
