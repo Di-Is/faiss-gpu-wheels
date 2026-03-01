@@ -8,7 +8,7 @@ body:
         **Please note: Feature requests for FAISS core functionality should be submitted to the [Upstream FAISS repository](https://github.com/facebookresearch/faiss).**
         This repository is for wheel packaging and distribution only.
 
-        **⚠️ Regarding new GPU architecture support:** This project currently supports Compute Capability 7.0–8.9 (Volta, Turing, Ampere, Ada Lovelace). Adding a new architecture requires dedicated hardware for building and testing. If you need support for an unsupported architecture, please consider [sponsoring this project](https://github.com/sponsors/Di-Is).
+        **⚠️ Regarding new GPU architecture support:** This project currently supports Compute Capability 7.0–8.9 (Volta, Turing, Ampere, Ada Lovelace). If you need support for an unsupported architecture, please see [Support for New GPU Architectures](https://github.com/Di-Is/faiss-gpu-wheels/discussions/120).
 
   - type: textarea
     attributes:
