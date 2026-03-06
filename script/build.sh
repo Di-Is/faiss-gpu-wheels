@@ -66,11 +66,29 @@ find_supported_cuda_host_compiler() {
 if [ "$FAISS_ENABLE_CUVS" == "ON" ]; then
     if CUDAHOSTCXX=$(find_supported_cuda_host_compiler); then
         export CUDAHOSTCXX
+        if [ -z "${CXX:-}" ]; then
+            export CXX="$CUDAHOSTCXX"
+        fi
+        if [ -z "${CC:-}" ]; then
+            candidate_cc="$(dirname "$CUDAHOSTCXX")/gcc"
+            if [ -x "$candidate_cc" ]; then
+                export CC="$candidate_cc"
+            fi
+        fi
         printf 'Using CUDA host compiler: %s\n' "$CUDAHOSTCXX"
     else
         eval "$PKG_INSTALL gcc-toolset-13-gcc gcc-toolset-13-gcc-c++"
         if CUDAHOSTCXX=$(find_supported_cuda_host_compiler); then
             export CUDAHOSTCXX
+            if [ -z "${CXX:-}" ]; then
+                export CXX="$CUDAHOSTCXX"
+            fi
+            if [ -z "${CC:-}" ]; then
+                candidate_cc="$(dirname "$CUDAHOSTCXX")/gcc"
+                if [ -x "$candidate_cc" ]; then
+                    export CC="$candidate_cc"
+                fi
+            fi
             printf 'Using CUDA host compiler: %s\n' "$CUDAHOSTCXX"
         else
             export CMAKE_CUDA_FLAGS="${CMAKE_CUDA_FLAGS:+${CMAKE_CUDA_FLAGS} }-allow-unsupported-compiler"
@@ -134,7 +152,11 @@ from importlib import import_module
 from pathlib import Path
 
 modules = ["libcuvs", "libraft", "librmm", "rapids_logger"]
-print(";".join(str(Path(import_module(name).__file__).resolve().parent) for name in modules))
+prefixes = []
+for name in modules:
+    root = Path(import_module(name).__file__).resolve().parent
+    prefixes.extend((root, root / "lib64", root / "lib64/cmake", root / "lib64/rapids"))
+print(";".join(str(path) for path in prefixes))
 PY
 )
     export cuvs_DIR=$("$BUILD_PYTHON" - <<'PY'
@@ -156,6 +178,34 @@ from importlib import import_module
 from pathlib import Path
 
 print(Path(import_module("librmm").__file__).resolve().parent / "lib64/cmake/rmm")
+PY
+)
+    export hnswlib_DIR=$("$BUILD_PYTHON" - <<'PY'
+from importlib import import_module
+from pathlib import Path
+
+print(Path(import_module("libcuvs").__file__).resolve().parent / "lib64/cmake/hnswlib")
+PY
+)
+    export cuco_DIR=$("$BUILD_PYTHON" - <<'PY'
+from importlib import import_module
+from pathlib import Path
+
+print(Path(import_module("libraft").__file__).resolve().parent / "lib64/cmake/cuco")
+PY
+)
+    export NvidiaCutlass_DIR=$("$BUILD_PYTHON" - <<'PY'
+from importlib import import_module
+from pathlib import Path
+
+print(Path(import_module("libraft").__file__).resolve().parent / "lib64/cmake/NvidiaCutlass")
+PY
+)
+    export nvtx3_DIR=$("$BUILD_PYTHON" - <<'PY'
+from importlib import import_module
+from pathlib import Path
+
+print(Path(import_module("librmm").__file__).resolve().parent / "lib64/cmake/nvtx3")
 PY
 )
     export rapids_logger_DIR=$("$BUILD_PYTHON" - <<'PY'
@@ -181,6 +231,10 @@ cmake_args=(
     -Dcuvs_DIR=${cuvs_DIR:-}
     -Draft_DIR=${raft_DIR:-}
     -Drmm_DIR=${rmm_DIR:-}
+    -Dhnswlib_DIR=${hnswlib_DIR:-}
+    -Dcuco_DIR=${cuco_DIR:-}
+    -DNvidiaCutlass_DIR=${NvidiaCutlass_DIR:-}
+    -Dnvtx3_DIR=${nvtx3_DIR:-}
     -Drapids_logger_DIR=${rapids_logger_DIR:-}
     -DFAISS_ENABLE_RAFT=${FAISS_ENABLE_RAFT}
     -DFAISS_ENABLE_ROCM=${FAISS_ENABLE_ROCM}
@@ -191,6 +245,12 @@ cmake_args=(
 )
 if [ -n "${CUDAHOSTCXX:-}" ]; then
     cmake_args+=("-DCMAKE_CUDA_HOST_COMPILER=${CUDAHOSTCXX}")
+fi
+if [ -n "${CC:-}" ]; then
+    cmake_args+=("-DCMAKE_C_COMPILER=${CC}")
+fi
+if [ -n "${CXX:-}" ]; then
+    cmake_args+=("-DCMAKE_CXX_COMPILER=${CXX}")
 fi
 if [ -n "${CMAKE_CUDA_FLAGS:-}" ]; then
     cmake_args+=("-DCMAKE_CUDA_FLAGS=${CMAKE_CUDA_FLAGS}")
