@@ -45,6 +45,20 @@ if [ "$FAISS_ENABLE_CUVS" == "ON" ] && [ -x "/opt/python/cp310-cp310/bin/python3
     BUILD_PYTHON="/opt/python/cp310-cp310/bin/python3"
 fi
 
+if [ "$FAISS_ENABLE_CUVS" == "ON" ]; then
+    for candidate in /opt/rh/gcc-toolset-13/root/usr/bin/g++ /usr/bin/g++; do
+        if [ ! -x "$candidate" ]; then
+            continue
+        fi
+        compiler_version=$("$candidate" -dumpfullversion 2>/dev/null || "$candidate" -dumpversion)
+        compiler_major=${compiler_version%%.*}
+        if [ "$compiler_major" -le 13 ]; then
+            export CUDAHOSTCXX="$candidate"
+            break
+        fi
+    done
+fi
+
 PYTHON_BIN_DIR=$("$BUILD_PYTHON" - <<'PY'
 from pathlib import Path
 import sys
@@ -139,21 +153,26 @@ FAISS_OPT_LEVEL=${FAISS_OPT_LEVEL:-"generic"}
 CUDA_ARCHITECTURES=${CUDA_ARCHITECTURES:-"70-real;80-real"}
 NJOB=${NJOB:-"$(nproc --all)"}
 cd faiss
-cmake . -B build \
-    -DFAISS_OPT_LEVEL=${FAISS_OPT_LEVEL} \
-    -DFAISS_ENABLE_GPU=${FAISS_ENABLE_GPU} \
-    -DCMAKE_CUDA_ARCHITECTURES=${CUDA_ARCHITECTURES} \
-    -DFAISS_ENABLE_CUVS=${FAISS_ENABLE_CUVS} \
-    -Dcuvs_DIR=${cuvs_DIR:-} \
-    -Draft_DIR=${raft_DIR:-} \
-    -Drmm_DIR=${rmm_DIR:-} \
-    -Drapids_logger_DIR=${rapids_logger_DIR:-} \
-    -DFAISS_ENABLE_RAFT=${FAISS_ENABLE_RAFT} \
-    -DFAISS_ENABLE_ROCM=${FAISS_ENABLE_ROCM} \
-    -DFAISS_ENABLE_PYTHON=OFF \
-    -DBUILD_TESTING=OFF \
-    -DBUILD_SHARED_LIBS=ON \
+cmake_args=(
+    -DFAISS_OPT_LEVEL=${FAISS_OPT_LEVEL}
+    -DFAISS_ENABLE_GPU=${FAISS_ENABLE_GPU}
+    -DCMAKE_CUDA_ARCHITECTURES=${CUDA_ARCHITECTURES}
+    -DFAISS_ENABLE_CUVS=${FAISS_ENABLE_CUVS}
+    -Dcuvs_DIR=${cuvs_DIR:-}
+    -Draft_DIR=${raft_DIR:-}
+    -Drmm_DIR=${rmm_DIR:-}
+    -Drapids_logger_DIR=${rapids_logger_DIR:-}
+    -DFAISS_ENABLE_RAFT=${FAISS_ENABLE_RAFT}
+    -DFAISS_ENABLE_ROCM=${FAISS_ENABLE_ROCM}
+    -DFAISS_ENABLE_PYTHON=OFF
+    -DBUILD_TESTING=OFF
+    -DBUILD_SHARED_LIBS=ON
     -DCMAKE_BUILD_TYPE=Release
+)
+if [ -n "${CUDAHOSTCXX:-}" ]; then
+    cmake_args+=("-DCMAKE_CUDA_HOST_COMPILER=${CUDAHOSTCXX}")
+fi
+cmake . -B build "${cmake_args[@]}"
 cmake --build build -j${NJOB}
 cmake --install build
 cd ..
