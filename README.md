@@ -8,15 +8,16 @@ This repository is based on [kyamagu/faiss-wheels](https://github.com/kyamagu/fa
 ## Overview
 
 This repository provides scripts to build GPU-enabled wheels for the [faiss](https://github.com/facebookresearch/faiss) library.
-Distributes `faiss-gpu-cuXX` packages to PyPI using the contents of this repository.
+Distributes `faiss-gpu-cuXX` and `faiss-gpu-cuvs` packages to PyPI using the contents of this repository.
 
 ### Key Features
 
 * **No local CUDA installation required** - Dynamically links to CUDA Runtime and cuBLAS libraries from PyPI
-* Builds CUDA 11.8+ and CUDA 12.1+ compatible wheels
+* Builds CUDA 11.8+, CUDA 12.1+, and CUDA 12.4 + cuVS compatible wheels
 * Supports Volta to Ada Lovelace architecture GPUs (Compute Capability 7.0–8.9)
 * Bundles OpenBLAS in Linux
 * Reduces wheel file size through dynamic linking instead of static compilation
+* Supports cuVS builds by dynamically loading `libcuvs` from RAPIDS wheels
 
 ## Important Requirements
 
@@ -33,9 +34,9 @@ The published `faiss-gpu-cuXX` packages require proper system setup that cannot 
 
 ## GPU Architecture Support for PyPI Packages
 
-### Support Policy for `faiss-gpu-cu11` and `faiss-gpu-cu12`
+### Support Policy for `faiss-gpu-cu11`, `faiss-gpu-cu12`, and `faiss-gpu-cuvs`
 
-**Note**: This is an **unofficial, personal development project** with limited computational resources. Due to these constraints, comprehensive testing across all NVIDIA GPU architectures is not feasible. The pre-built `faiss-gpu-cu11` and `faiss-gpu-cu12` packages on PyPI aim to support the same GPU architecture range (Compute Capability 7.0–8.9) as the official Faiss repository.
+**Note**: This is an **unofficial, personal development project** with limited computational resources. Due to these constraints, comprehensive testing across all NVIDIA GPU architectures is not feasible. The pre-built GPU packages on PyPI aim to support the same GPU architecture range (Compute Capability 7.0–8.9) as the official Faiss repository.
 
 ### Sponsoring New GPU Architecture Support
 
@@ -52,7 +53,7 @@ If you have a GPU architecture that is not supported by these pre-built wheels:
 
 ## Installation
 
-The `faiss-gpu-cu11` and `faiss-gpu-cu12` wheels are available on PyPI. Choose the appropriate version for your CUDA environment.
+The `faiss-gpu-cu11`, `faiss-gpu-cu12`, and `faiss-gpu-cuvs` wheels are available on PyPI. Choose the appropriate version for your CUDA environment.
 
 ### For CUDA 12
 
@@ -75,6 +76,30 @@ pip install faiss-gpu-cu12
 **System Requirements:**
 
 * OS: Linux x86_64 (glibc ≥2.17)
+* GPU: Compute Capability 7.0–8.9
+
+### For CUDA 12.4 + cuVS
+
+```bash
+# Install with fixed CUDA 12.4 and RAPIDS cuVS runtime
+pip install 'faiss-gpu-cuvs[fix-cuda]' --extra-index-url=https://pypi.nvidia.com
+
+# Same libcuvs series, but allow CUDA 12.X runtime packages to float
+pip install faiss-gpu-cuvs --extra-index-url=https://pypi.nvidia.com
+```
+
+**Details:**
+
+* `faiss-gpu-cuvs` is built with CUDA Toolkit 12.4.1 and links against `libcuvs-cu12==25.10.*`
+* The build and runtime `libcuvs` series are intentionally pinned to the same RAPIDS release line
+* The wheel is built with a `manylinux_2_28` base image so that the advertised libc baseline matches the cuVS-enabled build
+* `[fix-cuda]` pins CUDA runtime, cuBLAS, cuRAND, cuSOLVER, cuSPARSE, and nvJitLink to the build baseline while keeping the same cuVS line
+* Installation requires the NVIDIA package index because `libcuvs-cu12` and related RAPIDS binary wheels are distributed there
+* At import time, the wheel delegates cuVS loading to `libcuvs.load_library()`, which loads `libcuvs`, `libraft`, `librmm`, and the required CUDA-side dependencies in the expected order
+
+**System Requirements:**
+
+* OS: Linux x86_64 (glibc ≥2.28)
 * GPU: Compute Capability 7.0–8.9
 
 ### For CUDA 11
@@ -104,6 +129,7 @@ pip install faiss-gpu-cu11
 |--------------|------------------------|
 | CUDA 11.8    | ≥R520 (520.61.05)      |
 | CUDA 12.1    | ≥R530 (530.30.02)      |
+| CUDA 12.4    | ≥R550                  |
 | CUDA 12.2+   | Check [NVIDIA Documentation](https://docs.nvidia.com/deploy/cuda-compatibility/) |
 
 **Warning**: When installing without `[fix-cuda]`, pip may resolve to a newer CUDA version that requires a newer driver than you have installed. Always verify driver compatibility before installation.
@@ -134,7 +160,7 @@ override-dependencies = [
 
 ## Building from Source
 
-Build `faiss-gpu-cu11` and `faiss-gpu-cu12` wheels using [cibuildwheel](https://github.com/pypa/cibuildwheel).
+Build `faiss-gpu-cu11`, `faiss-gpu-cu12`, and `faiss-gpu-cuvs` wheels using [cibuildwheel](https://github.com/pypa/cibuildwheel).
 
 ### Build Configuration
 
@@ -160,6 +186,9 @@ uvx cibuildwheel@2.23.2 variant/gpu-cu11 --output-dir wheelhouse/gpu-cu11
 
 # Build faiss-gpu-cu12 wheels
 uvx cibuildwheel@2.23.2 variant/gpu-cu12 --output-dir wheelhouse/gpu-cu12
+
+# Build faiss-gpu-cuvs wheels
+uvx cibuildwheel@2.23.2 variant/gpu-cuvs --output-dir wheelhouse/gpu-cuvs
 ```
 
 Wheels will be created in `{repository_root}/wheelhouse/gpu-cuXX/`.
@@ -169,3 +198,6 @@ Wheels will be created in `{repository_root}/wheelhouse/gpu-cuXX/`.
 * OS: Linux x86_64
 * NVIDIA Container Toolkit (if running tests)
 * NVIDIA Driver: ≥R530 (if running tests with CUDA 12)
+* `uv` available in the build environment
+* For `faiss-gpu-cuvs`, access to `https://pypi.nvidia.com` to install RAPIDS binary wheels (`libcuvs-cu12`, `libraft-cu12`, `librmm-cu12`, `rapids-logger`)
+* For `faiss-gpu-cuvs`, `cmake >= 3.30.4`

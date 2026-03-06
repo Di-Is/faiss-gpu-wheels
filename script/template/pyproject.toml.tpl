@@ -49,6 +49,7 @@ wheel.exclude = ["*.cxx"]
 [tool.scikit-build.cmake.define]
 FAISS_OPT_LEVEL = { env = "FAISS_OPT_LEVEL" }
 FAISS_ENABLE_GPU = { env = "FAISS_ENABLE_GPU" }
+FAISS_ENABLE_CUVS = { env = "FAISS_ENABLE_CUVS" }
 FAISS_ENABLE_ROCM = { env = "FAISS_ENABLE_ROCM" }
 FAISS_ENABLE_RAFT = { env = "FAISS_ENABLE_RAFT" }
 

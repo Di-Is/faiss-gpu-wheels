@@ -29,6 +29,16 @@ import tomllib
 from pydanclick import from_pydantic
 from pydantic import BaseModel
 
+GPU_VARIANTS = {"gpu-cu11", "gpu-cu12", "gpu-cuvs"}
+CUDA_COMPONENT_PACKAGES = {
+    "cuda_cudart": "nvidia-cuda-runtime-cu{major}",
+    "libcublas": "nvidia-cublas-cu{major}",
+    "libcurand": "nvidia-curand-cu{major}",
+    "libcusolver": "nvidia-cusolver-cu{major}",
+    "libcusparse": "nvidia-cusparse-cu{major}",
+    "libnvjitlink": "nvidia-nvjitlink-cu{major}",
+}
+
 
 def get_cuda_version(version: str, component: str) -> str:
     """Get cuda toolkit component version.
@@ -69,10 +79,17 @@ def get_cuda_version(version: str, component: str) -> str:
     return data[component]["version"]
 
 
+def get_cuda_package_spec(version: str, major: str, component: str, operator: str) -> str:
+    """Return a CUDA Python package spec for the requested toolkit component."""
+    package = CUDA_COMPONENT_PACKAGES[component].format(major=major)
+    component_version = get_cuda_version(version, component)
+    return f"{package}{operator}{component_version}"
+
+
 class Args(BaseModel):
     """Script argument."""
 
-    variant: Literal["cpu", "gpu-cu11", "gpu-cu12"]
+    variant: Literal["cpu", "gpu-cu11", "gpu-cu12", "gpu-cuvs"]
 
 
 @click.command()
@@ -107,20 +124,24 @@ def cli(args: Args) -> None:
 pytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) &&
 pytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))
 """
-    elif variant in ["gpu-cu11", "gpu-cu12"]:
+    elif variant in GPU_VARIANTS:
         major, _, _ = config["cuda"]["version"].split(".")
-        cublas_ver = get_cuda_version(config["cuda"]["version"], "libcublas")
-        cudart_ver = get_cuda_version(config["cuda"]["version"], "cuda_cudart")
         dependencies = [
-            f"nvidia-cuda-runtime-cu{major}>={cudart_ver}",
-            f"nvidia-cublas-cu{major}>={cublas_ver}",
+            get_cuda_package_spec(config["cuda"]["version"], major, "cuda_cudart", ">="),
+            get_cuda_package_spec(config["cuda"]["version"], major, "libcublas", ">="),
         ]
-        optional_dependencies = {
-            "fix-cuda": [
-                f"nvidia-cuda-runtime-cu{major}=={cudart_ver}",
-                f"nvidia-cublas-cu{major}=={cublas_ver}",
-            ]
-        }
+        if variant == "gpu-cuvs":
+            dependencies.append(f"libcuvs-cu{major}=={config['cuvs']['version']}")
+        fix_cuda_components = ["cuda_cudart", "libcublas"]
+        fix_cuda_components += config["python"].get("fix-cuda-components", [])
+        optional_dependencies = {"fix-cuda": []}
+        seen_specs: set[str] = set()
+        for component in fix_cuda_components:
+            spec = get_cuda_package_spec(config["cuda"]["version"], major, component, "==")
+            if spec in seen_specs:
+                continue
+            seen_specs.add(spec)
+            optional_dependencies["fix-cuda"].append(spec)
         test_extras = ["fix-cuda"]
         classifiers = [
             "Environment :: GPU :: NVIDIA CUDA",
@@ -128,6 +149,13 @@ pytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))
         ]
         build_envs = {"CUDA_VERSION": config["cuda"]["version"]}
         envs = {"FAISS_ENABLE_GPU": "ON"}
+        if variant == "gpu-cuvs":
+            build_envs["CUVS_VERSION"] = config["cuvs"]["version"]
+            build_envs["NVIDIA_EXTRA_INDEX_URL"] = config["python"]["extra-index-url"][0]
+            build_envs["CMAKE_VERSION"] = config["build"]["cmake-version"]
+            envs["FAISS_ENABLE_CUVS"] = "ON"
+            envs["PIP_EXTRA_INDEX_URL"] = config["python"]["extra-index-url"][0]
+            envs["UV_EXTRA_INDEX_URL"] = config["python"]["extra-index-url"][0]
         enviromnet_pass = ["CUDA_ARCHITECTURES"]
         test_command = """
 # CPU Test
@@ -141,9 +169,10 @@ pytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py
     pyproject["project"]["dependencies"] += dependencies
     pyproject["project"]["optional-dependencies"] = optional_dependencies
     pyproject["project"]["classifiers"] += classifiers
-    repair_option = " ".join(
-        [i for v in config["python"]["preload-library"] for i in ["--exclude", v["library"]]]
-    )
+    repair_excludes = [
+        v["library"] for v in config["python"]["preload-library"] if "library" in v
+    ] + config["python"].get("auditwheel-exclude", [])
+    repair_option = " ".join([i for library in repair_excludes for i in ["--exclude", library]])
     env_vars = " ".join([f'{k}="{v}"' for k, v in build_envs.items()])
     pyproject["tool"]["cibuildwheel"]["linux"]["before-all"] = f"{env_vars} script/build.sh"
     pyproject["tool"]["cibuildwheel"]["linux"]["environment-pass"] += enviromnet_pass
@@ -156,11 +185,14 @@ pytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py
         "repair-wheel-command": f"auditwheel repair -w {{dest_dir}} {{wheel}} {repair_option}",
         "test-command": test_command,
     }
+    pyproject["tool"]["cibuildwheel"] |= config.get("cibuildwheel", {})
     pyproject["dependency-groups"]["dev"] = config["test"]["dependencies"]
-    pyproject["tool"]["uv"] = {
-        "index": [{"name": "torch-index", "url": config["test"]["index-url"], "explicit": True}],
-        "sources": {"torch": {"index": "torch-index"}},
-    }
+    uv_indexes: list[dict[str, object]] = [
+        {"name": "torch-index", "url": config["test"]["index-url"], "explicit": True}
+    ]
+    for index_no, extra_index_url in enumerate(config["python"].get("extra-index-url", []), start=1):
+        uv_indexes.append({"name": f"extra-index-{index_no}", "url": extra_index_url})
+    pyproject["tool"]["uv"] = {"index": uv_indexes, "sources": {"torch": {"index": "torch-index"}}}
     pyproject_path = variant_path / "pyproject.toml"
     text = """# Copyright (c) 2024 Di-Is
 #
