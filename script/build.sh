@@ -40,7 +40,12 @@ FAISS_ENABLE_RAFT=${FAISS_ENABLE_RAFT:-"OFF"}
 CUVS_VERSION=${CUVS_VERSION:-"25.10.*"}
 CMAKE_VERSION=${CMAKE_VERSION:-""}
 NVIDIA_EXTRA_INDEX_URL=${NVIDIA_EXTRA_INDEX_URL:-"https://pypi.nvidia.com"}
-PYTHON_BIN_DIR=$(python3 - <<'PY'
+BUILD_PYTHON=${BUILD_PYTHON:-"$(command -v python3)"}
+if [ "$FAISS_ENABLE_CUVS" == "ON" ] && [ -x "/opt/python/cp310-cp310/bin/python3" ]; then
+    BUILD_PYTHON="/opt/python/cp310-cp310/bin/python3"
+fi
+
+PYTHON_BIN_DIR=$("$BUILD_PYTHON" - <<'PY'
 from pathlib import Path
 import sys
 
@@ -50,7 +55,7 @@ PY
 export PATH="${PYTHON_BIN_DIR}:${PATH}"
 
 if [ -n "$CMAKE_VERSION" ]; then
-    uv pip install --system --python "$(command -v python3)" --no-cache "cmake==${CMAKE_VERSION}"
+    uv pip install --system --python "$BUILD_PYTHON" --no-cache "cmake==${CMAKE_VERSION}"
 fi
 
 if [ "$FAISS_ENABLE_GPU" == "ON" ]; then
@@ -82,7 +87,7 @@ if [ "$FAISS_ENABLE_CUVS" == "ON" ]; then
 
     # libcuvs/libraft wheels declare NCCL as a runtime dependency.
     # Because we install RAPIDS wheels with --no-deps, provide libnccl.so.2 explicitly for the linker.
-    uv pip install --system --python "$(command -v python3)" --no-cache \
+    uv pip install --system --python "$BUILD_PYTHON" --no-cache \
         --extra-index-url "${NVIDIA_EXTRA_INDEX_URL}" --only-binary :all: --no-deps \
         "libcuvs-cu12==${CUVS_VERSION}" \
         "libraft-cu12==${CUVS_VERSION}" \
@@ -90,7 +95,7 @@ if [ "$FAISS_ENABLE_CUVS" == "ON" ]; then
         "rapids-logger==0.1.*" \
         "nvidia-nccl-cu12>=2.19"
 
-    RAPIDS_CMAKE_PREFIX_PATH=$(python3 - <<'PY'
+    RAPIDS_CMAKE_PREFIX_PATH=$("$BUILD_PYTHON" - <<'PY'
 from importlib import import_module
 from pathlib import Path
 
@@ -98,28 +103,28 @@ modules = ["libcuvs", "libraft", "librmm", "rapids_logger"]
 print(";".join(str(Path(import_module(name).__file__).resolve().parent) for name in modules))
 PY
 )
-    export cuvs_DIR=$(python3 - <<'PY'
+    export cuvs_DIR=$("$BUILD_PYTHON" - <<'PY'
 from importlib import import_module
 from pathlib import Path
 
 print(Path(import_module("libcuvs").__file__).resolve().parent / "lib64/cmake/cuvs")
 PY
 )
-    export raft_DIR=$(python3 - <<'PY'
+    export raft_DIR=$("$BUILD_PYTHON" - <<'PY'
 from importlib import import_module
 from pathlib import Path
 
 print(Path(import_module("libraft").__file__).resolve().parent / "lib64/cmake/raft")
 PY
 )
-    export rmm_DIR=$(python3 - <<'PY'
+    export rmm_DIR=$("$BUILD_PYTHON" - <<'PY'
 from importlib import import_module
 from pathlib import Path
 
 print(Path(import_module("librmm").__file__).resolve().parent / "lib64/cmake/rmm")
 PY
 )
-    export rapids_logger_DIR=$(python3 - <<'PY'
+    export rapids_logger_DIR=$("$BUILD_PYTHON" - <<'PY'
 from importlib import import_module
 from pathlib import Path
 
