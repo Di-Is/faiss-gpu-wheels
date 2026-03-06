@@ -45,18 +45,38 @@ if [ "$FAISS_ENABLE_CUVS" == "ON" ] && [ -x "/opt/python/cp310-cp310/bin/python3
     BUILD_PYTHON="/opt/python/cp310-cp310/bin/python3"
 fi
 
-if [ "$FAISS_ENABLE_CUVS" == "ON" ]; then
-    for candidate in /opt/rh/gcc-toolset-13/root/usr/bin/g++ /usr/bin/g++; do
-        if [ ! -x "$candidate" ]; then
+find_supported_cuda_host_compiler() {
+    local candidate
+    local compiler_version
+    local compiler_major
+    for candidate in /opt/rh/gcc-toolset-13/root/usr/bin/g++ /usr/bin/g++ "$(command -v g++ 2>/dev/null || true)"; do
+        if [ -z "$candidate" ] || [ ! -x "$candidate" ]; then
             continue
         fi
         compiler_version=$("$candidate" -dumpfullversion 2>/dev/null || "$candidate" -dumpversion)
         compiler_major=${compiler_version%%.*}
         if [ "$compiler_major" -le 13 ]; then
-            export CUDAHOSTCXX="$candidate"
-            break
+            printf '%s\n' "$candidate"
+            return 0
         fi
     done
+    return 1
+}
+
+if [ "$FAISS_ENABLE_CUVS" == "ON" ]; then
+    if CUDAHOSTCXX=$(find_supported_cuda_host_compiler); then
+        export CUDAHOSTCXX
+        printf 'Using CUDA host compiler: %s\n' "$CUDAHOSTCXX"
+    else
+        eval "$PKG_INSTALL gcc-toolset-13-gcc gcc-toolset-13-gcc-c++"
+        if CUDAHOSTCXX=$(find_supported_cuda_host_compiler); then
+            export CUDAHOSTCXX
+            printf 'Using CUDA host compiler: %s\n' "$CUDAHOSTCXX"
+        else
+            export CMAKE_CUDA_FLAGS="${CMAKE_CUDA_FLAGS:+${CMAKE_CUDA_FLAGS} }-allow-unsupported-compiler"
+            printf 'Falling back to CMAKE_CUDA_FLAGS=%s\n' "$CMAKE_CUDA_FLAGS"
+        fi
+    fi
 fi
 
 PYTHON_BIN_DIR=$("$BUILD_PYTHON" - <<'PY'
@@ -171,6 +191,9 @@ cmake_args=(
 )
 if [ -n "${CUDAHOSTCXX:-}" ]; then
     cmake_args+=("-DCMAKE_CUDA_HOST_COMPILER=${CUDAHOSTCXX}")
+fi
+if [ -n "${CMAKE_CUDA_FLAGS:-}" ]; then
+    cmake_args+=("-DCMAKE_CUDA_FLAGS=${CMAKE_CUDA_FLAGS}")
 fi
 cmake . -B build "${cmake_args[@]}"
 cmake --build build -j${NJOB}
