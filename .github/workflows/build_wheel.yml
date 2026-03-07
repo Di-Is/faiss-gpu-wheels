@@ -96,10 +96,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "${{ matrix.variant }}" == "gpu-cuvs" ]]; then
-            export UV_EXTRA_INDEX_URL="https://pypi.nvidia.com"
-          fi
-          uv sync --project variant/${{ matrix.variant }} --no-install-project -p ${{ matrix.python-version }}
+          uv sync --project variant/${{ matrix.variant }} --locked --no-install-project -p ${{ matrix.python-version }}
           py_version="${{ matrix.python-version }}"
           py_tag="cp${py_version/./}"
           wheel_path="$(ls wheelhouse/*${py_tag}*.whl | head -n 1)"
