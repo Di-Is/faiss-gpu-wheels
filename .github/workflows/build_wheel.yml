@@ -45,6 +45,8 @@ jobs:
           submodules: 'true'
       - name: Install uv
         uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.10.9"
       - name: Get faiss submodule ref
         id: faiss-ref
         run: echo "hash=$(git rev-parse HEAD:faiss)" >> "$GITHUB_OUTPUT"
@@ -87,6 +89,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install uv
         uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.10.9"
       - name: Download wheel
         uses: actions/download-artifact@v4
         with:
