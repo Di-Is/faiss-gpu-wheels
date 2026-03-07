@@ -220,9 +220,23 @@ pytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py
     uv_indexes: list[dict[str, object]] = [
         {"name": "torch-index", "url": config["test"]["index-url"], "explicit": True}
     ]
+    explicit_extra_indexes = set(config["python"].get("explicit-extra-index-url", []))
     for index_no, extra_index_url in enumerate(config["python"].get("extra-index-url", []), start=1):
-        uv_indexes.append({"name": f"extra-index-{index_no}", "url": extra_index_url})
-    pyproject["tool"]["uv"] = {"index": uv_indexes, "sources": {"torch": {"index": "torch-index"}}}
+        uv_index: dict[str, object] = {"name": f"extra-index-{index_no}", "url": extra_index_url}
+        if index_no in explicit_extra_indexes:
+            uv_index["explicit"] = True
+        uv_indexes.append(uv_index)
+    uv_sources: dict[str, object] = {"torch": {"index": "torch-index"}}
+    for package_name, index_name in config["python"].get("source-indexes", {}).items():
+        uv_sources[package_name] = {"index": index_name}
+    uv_config: dict[str, object] = {"index": uv_indexes, "sources": uv_sources}
+    environments = config["python"].get("environments", [])
+    if environments:
+        uv_config["environments"] = environments
+    required_environments = config["python"].get("required-environments", [])
+    if required_environments:
+        uv_config["required-environments"] = required_environments
+    pyproject["tool"]["uv"] = uv_config
     pyproject_path = variant_path / "pyproject.toml"
     text = """# Copyright (c) 2024 Di-Is
 #

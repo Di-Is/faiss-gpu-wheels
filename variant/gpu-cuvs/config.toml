@@ -10,6 +10,10 @@ version = "25.10.*"
 
 [python]
 extra-index-url = ["https://pypi.nvidia.com"]
+explicit-extra-index-url = [1]
+source-indexes = { "libcuvs-cu12" = "extra-index-1", "nvidia-cuda-runtime-cu12" = "extra-index-1", "nvidia-cublas-cu12" = "extra-index-1", "nvidia-curand-cu12" = "extra-index-1", "nvidia-cusolver-cu12" = "extra-index-1", "nvidia-cusparse-cu12" = "extra-index-1", "nvidia-nvjitlink-cu12" = "extra-index-1" }
+environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
+required-environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
 fix-cuda-components = ["libcurand", "libcusolver", "libcusparse", "libnvjitlink"]
 repair-wheel-command-prefix = "LD_LIBRARY_PATH=\"/usr/local/lib64:/usr/local/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}\""
 auditwheel-exclude = [

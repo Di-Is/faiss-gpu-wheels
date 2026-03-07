@@ -63,11 +63,36 @@ dev = ["pytest", "pytest-xdist", "scipy", "torch"]
 [tool.uv]
 index = [
     { name = "torch-index", url = "https://download.pytorch.org/whl/cu124", explicit = true },
-    { name = "extra-index-1", url = "https://pypi.nvidia.com" },
+    { name = "extra-index-1", url = "https://pypi.nvidia.com", explicit = true },
+]
+environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
+required-environments = [
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",
 ]
 
 [tool.uv.sources.torch]
 index = "torch-index"
+
+[tool.uv.sources.libcuvs-cu12]
+index = "extra-index-1"
+
+[tool.uv.sources.nvidia-cuda-runtime-cu12]
+index = "extra-index-1"
+
+[tool.uv.sources.nvidia-cublas-cu12]
+index = "extra-index-1"
+
+[tool.uv.sources.nvidia-curand-cu12]
+index = "extra-index-1"
+
+[tool.uv.sources.nvidia-cusolver-cu12]
+index = "extra-index-1"
+
+[tool.uv.sources.nvidia-cusparse-cu12]
+index = "extra-index-1"
+
+[tool.uv.sources.nvidia-nvjitlink-cu12]
+index = "extra-index-1"
 
 [tool.scikit-build.cmake]
 source-dir = "../../"
