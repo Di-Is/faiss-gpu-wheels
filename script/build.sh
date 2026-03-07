@@ -30,8 +30,15 @@ fi
 [ ! -d "$RPM_CACHE_DIR" ] && mkdir -p "$RPM_CACHE_DIR"
 eval "$MAKE_CACHE"
 
-# Install blas
-eval "$PKG_INSTALL openblas-devel openblas-static"
+# Install blas and ccache
+eval "$PKG_INSTALL openblas-devel openblas-static ccache"
+
+# Configure ccache
+export CCACHE_DIR='/host/tmp/.cache/ccache'
+[ ! -d "$CCACHE_DIR" ] && mkdir -p "$CCACHE_DIR"
+export CMAKE_C_COMPILER_LAUNCHER=ccache
+export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+export CMAKE_CUDA_COMPILER_LAUNCHER=ccache
 
 FAISS_ENABLE_GPU=${FAISS_ENABLE_GPU:-"OFF"}
 FAISS_ENABLE_CUVS=${FAISS_ENABLE_CUVS:-"OFF"}
@@ -201,5 +208,6 @@ fi
 cmake . -B build "${cmake_args[@]}"
 cmake --build build -j${NJOB}
 cmake --install build
+ccache --show-stats || true
 cd ..
 git apply patch/modify-numpy-find-package.patch
