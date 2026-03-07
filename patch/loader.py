@@ -11,6 +11,7 @@ from __future__ import annotations
 import ctypes
 import json
 import os
+from importlib import import_module
 from importlib.metadata import distribution
 from logging import getLogger
 from pathlib import Path
@@ -19,7 +20,7 @@ from typing import TypedDict
 logger = getLogger(__name__)
 
 
-class _PreloadTarget(TypedDict):
+class _PreloadTarget(TypedDict, total=False):
     """file search parameter."""
 
     # package group
@@ -28,6 +29,10 @@ class _PreloadTarget(TypedDict):
     package: str
     # search target filename
     library: str
+    # python module name that exposes a shared-library loader helper
+    module: str
+    # callable name on the module
+    function: str
 
 
 def _load_shared_library(preload_target: _PreloadTarget) -> None:
@@ -48,6 +53,22 @@ def _load_shared_library(preload_target: _PreloadTarget) -> None:
     logger.debug("Finish to load shared library.", extra=preload_target)
 
 
+def _load_module(preload_target: _PreloadTarget) -> None:
+    """Load shared libraries via a Python helper module."""
+    module_name = preload_target["module"]
+    function_name = preload_target.get("function", "load_library")
+    logger.debug(
+        "Try to load shared library via module helper.",
+        extra={"group": preload_target["group"], "module": module_name, "function": function_name},
+    )
+    load = getattr(import_module(module_name), function_name)
+    load()
+    logger.debug(
+        "Finish to load shared library via module helper.",
+        extra={"group": preload_target["group"], "module": module_name, "function": function_name},
+    )
+
+
 _CONFIG_PATH = Path(__file__).parent / "_preload_library.json"
 
 # loading shared libraries
@@ -60,7 +81,10 @@ for target in preload_targets:
     if os.getenv(f"_FAISS_WHEEL_DISABLE_{target['group'].upper()}_PRELOAD"):
         logger.debug("Skip to load shared library.", extra=target)
         continue
-    _load_shared_library(target)
+    if "module" in target:
+        _load_module(target)
+    else:
+        _load_shared_library(target)
 
 
 from ._loader import *  # noqa: E402, F403

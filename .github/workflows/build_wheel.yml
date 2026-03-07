@@ -2,6 +2,7 @@ name: Build & publish wheel
 
 on:
   workflow_call:
+  workflow_dispatch:
   pull_request:
     types: [opened, synchronize, reopened, labeled]
   release:
@@ -13,19 +14,53 @@ env:
   CIBW_TEST_COMMAND_LINUX: ""
   
 jobs:
+  prepare-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      variants: ${{ steps.set-matrix.outputs.variants }}
+    steps:
+      - name: Select variants
+        id: set-matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            variants='["gpu-cuvs"]'
+          else
+            variants='["gpu-cu11","gpu-cu12","gpu-cuvs"]'
+          fi
+          echo "variants=${variants}" >> "${GITHUB_OUTPUT}"
+
   build-wheel:
-    if: ${{ github.event_name == 'release' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'build')) }}
+    needs: ["prepare-matrix"]
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'release' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'build')) }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        variant: ["gpu-cu11", "gpu-cu12"]
+        variant: ${{ fromJSON(needs.prepare-matrix.outputs.variants) }}
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: 'true'
       - name: Install uv
         uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.10.9"
+      - name: Get faiss submodule ref
+        id: faiss-ref
+        run: echo "hash=$(git rev-parse HEAD:faiss)" >> "$GITHUB_OUTPUT"
+      - name: Restore build caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            /tmp/.cache/ccache
+            /tmp/.cache/rpm
+            /tmp/.cache/uv
+          key: build-cache-${{ matrix.variant }}-${{ hashFiles('script/build.sh', 'CMakeLists.txt') }}-${{ steps.faiss-ref.outputs.hash }}-${{ github.sha }}
+          restore-keys: |
+            build-cache-${{ matrix.variant }}-${{ hashFiles('script/build.sh', 'CMakeLists.txt') }}-${{ steps.faiss-ref.outputs.hash }}-
+            build-cache-${{ matrix.variant }}-
       - name: build faiss-${{ matrix.variant }}
         run: uvx cibuildwheel@2.23.2 variant/${{ matrix.variant }} --output-dir wheelhouse
       - uses: actions/upload-artifact@v4
@@ -35,12 +70,12 @@ jobs:
 
   test-cpu:
     name: cpu tests (wheel)
-    needs: ["build-wheel"]
+    needs: ["prepare-matrix", "build-wheel"]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        variant: ["gpu-cu11", "gpu-cu12"]
+        variant: ${{ fromJSON(needs.prepare-matrix.outputs.variants) }}
         python-version: ["3.10", "3.11", "3.12", "3.13"]
     env:
       OMP_NUM_THREADS: "1"
@@ -54,6 +89,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install uv
         uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.10.9"
       - name: Download wheel
         uses: actions/download-artifact@v4
         with:
@@ -63,7 +100,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          uv sync --project variant/${{ matrix.variant }} --no-install-project -p ${{ matrix.python-version }}
+          uv sync --project variant/${{ matrix.variant }} --locked --no-install-project -p ${{ matrix.python-version }}
           py_version="${{ matrix.python-version }}"
           py_tag="cp${py_version/./}"
           wheel_path="$(ls wheelhouse/*${py_tag}*.whl | head -n 1)"
@@ -72,7 +109,7 @@ jobs:
             exit 1
           fi
           extras=""
-          if [[ "${{ matrix.variant }}" == "gpu-cu11" || "${{ matrix.variant }}" == "gpu-cu12" ]]; then
+          if [[ "${{ matrix.variant }}" == "gpu-cu11" || "${{ matrix.variant }}" == "gpu-cu12" || "${{ matrix.variant }}" == "gpu-cuvs" ]]; then
             extras="[fix-cuda]"
           fi
           source "variant/${{ matrix.variant }}/.venv/bin/activate"

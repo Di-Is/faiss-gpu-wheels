@@ -1,0 +1,47 @@
+[cuda]
+version = "12.4.1"
+target-archs = "70-real;80-real;86-real"
+
+[build]
+cmake-version = "3.30.4"
+
+[cuvs]
+version = "25.10.*"
+
+[python]
+extra-index-url = ["https://pypi.nvidia.com"]
+explicit-extra-index-url = [1]
+source-indexes = { "libcuvs-cu12" = "extra-index-1", "nvidia-cuda-runtime-cu12" = "extra-index-1", "nvidia-cublas-cu12" = "extra-index-1", "nvidia-curand-cu12" = "extra-index-1", "nvidia-cusolver-cu12" = "extra-index-1", "nvidia-cusparse-cu12" = "extra-index-1", "nvidia-nvjitlink-cu12" = "extra-index-1" }
+environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
+required-environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
+fix-cuda-components = ["libcurand", "libcusolver", "libcusparse", "libnvjitlink"]
+repair-wheel-command-prefix = "LD_LIBRARY_PATH=\"/usr/local/lib64:/usr/local/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}\""
+auditwheel-exclude = [
+    "libcurand.so.10",
+    "libcusolver.so.11",
+    "libcusparse.so.12",
+    "libnvJitLink.so.12",
+    "libnccl.so.2",
+    "libcuvs.so",
+    "libcuvs_c.so",
+    "libraft.so",
+    "librmm.so",
+    "librapids_logger.so",
+]
+preload-library = [
+    { "group" = "cuda", "package" = "nvidia-cuda-runtime-cu12", "library" = "libcudart.so.12" },
+    { "group" = "cuda", "package" = "nvidia-cublas-cu12", "library" = "libcublas.so.12" },
+    { "group" = "cuda", "package" = "nvidia-cublas-cu12", "library" = "libcublasLt.so.12" },
+    { "group" = "cuda", "package" = "nvidia-curand-cu12", "library" = "libcurand.so.10" },
+    { "group" = "cuda", "package" = "nvidia-cusolver-cu12", "library" = "libcusolver.so.11" },
+    { "group" = "cuda", "package" = "nvidia-cusparse-cu12", "library" = "libcusparse.so.12" },
+    { "group" = "cuda", "package" = "nvidia-nvjitlink-cu12", "library" = "libnvJitLink.so.12" },
+    { "group" = "cuvs", "module" = "libcuvs", "function" = "load_library" },
+]
+
+[cibuildwheel]
+manylinux-x86_64-image = "manylinux_2_28"
+
+[test]
+dependencies = ["pytest", "pytest-xdist", "scipy", "torch"]
+index-url = "https://download.pytorch.org/whl/cu124"

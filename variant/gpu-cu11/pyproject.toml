@@ -72,6 +72,9 @@ env = "FAISS_OPT_LEVEL"
 [tool.scikit-build.cmake.define.FAISS_ENABLE_GPU]
 env = "FAISS_ENABLE_GPU"
 
+[tool.scikit-build.cmake.define.FAISS_ENABLE_CUVS]
+env = "FAISS_ENABLE_CUVS"
+
 [tool.scikit-build.cmake.define.FAISS_ENABLE_ROCM]
 env = "FAISS_ENABLE_ROCM"
 

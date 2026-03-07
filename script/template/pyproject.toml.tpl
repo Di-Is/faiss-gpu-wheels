@@ -49,8 +49,20 @@ wheel.exclude = ["*.cxx"]
 [tool.scikit-build.cmake.define]
 FAISS_OPT_LEVEL = { env = "FAISS_OPT_LEVEL" }
 FAISS_ENABLE_GPU = { env = "FAISS_ENABLE_GPU" }
+FAISS_ENABLE_CUVS = { env = "FAISS_ENABLE_CUVS" }
 FAISS_ENABLE_ROCM = { env = "FAISS_ENABLE_ROCM" }
 FAISS_ENABLE_RAFT = { env = "FAISS_ENABLE_RAFT" }
+cuvs_DIR = { env = "FAISS_CUVS_DIR" }
+raft_DIR = { env = "FAISS_RAFT_DIR" }
+rmm_DIR = { env = "FAISS_RMM_DIR" }
+hnswlib_DIR = { env = "FAISS_HNSWLIB_DIR" }
+cuco_DIR = { env = "FAISS_CUCO_DIR" }
+NvidiaCutlass_DIR = { env = "FAISS_NVIDIA_CUTLASS_DIR" }
+nvtx3_DIR = { env = "FAISS_NVTX3_DIR" }
+rapids_logger_DIR = { env = "FAISS_RAPIDS_LOGGER_DIR" }
+CMAKE_C_COMPILER = { env = "FAISS_C_COMPILER" }
+CMAKE_CXX_COMPILER = { env = "FAISS_CXX_COMPILER" }
+CMAKE_CUDA_HOST_COMPILER = { env = "FAISS_CUDA_HOST_COMPILER" }
 
 [tool.cibuildwheel]
 build-frontend = "build[uv]"
