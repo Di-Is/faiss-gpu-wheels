@@ -45,6 +45,9 @@ jobs:
           submodules: 'true'
       - name: Install uv
         uses: astral-sh/setup-uv@v5
+      - name: Get faiss submodule ref
+        id: faiss-ref
+        run: echo "hash=$(git rev-parse HEAD:faiss)" >> "$GITHUB_OUTPUT"
       - name: Restore build caches
         uses: actions/cache@v4
         with:
@@ -52,18 +55,12 @@ jobs:
             /tmp/.cache/ccache
             /tmp/.cache/rpm
             /tmp/.cache/uv
-          key: build-cache-${{ matrix.variant }}-${{ hashFiles('script/build.sh', 'CMakeLists.txt', '.gitmodules') }}-${{ github.sha }}
+          key: build-cache-${{ matrix.variant }}-${{ hashFiles('script/build.sh', 'CMakeLists.txt') }}-${{ steps.faiss-ref.outputs.hash }}-${{ github.sha }}
           restore-keys: |
-            build-cache-${{ matrix.variant }}-${{ hashFiles('script/build.sh', 'CMakeLists.txt', '.gitmodules') }}-
+            build-cache-${{ matrix.variant }}-${{ hashFiles('script/build.sh', 'CMakeLists.txt') }}-${{ steps.faiss-ref.outputs.hash }}-
             build-cache-${{ matrix.variant }}-
       - name: build faiss-${{ matrix.variant }}
         run: uvx cibuildwheel@2.23.2 variant/${{ matrix.variant }} --output-dir wheelhouse
-      - name: Show ccache stats
-        run: |
-          if [ -d /tmp/.cache/ccache ]; then
-            echo "ccache directory size: $(du -sh /tmp/.cache/ccache | cut -f1)"
-            find /tmp/.cache/ccache -type f | wc -l | xargs -I{} echo "ccache files: {}"
-          fi
       - uses: actions/upload-artifact@v4
         with:
           name: wheel-${{ matrix.variant }}

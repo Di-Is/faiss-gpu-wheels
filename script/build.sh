@@ -30,8 +30,13 @@ fi
 [ ! -d "$RPM_CACHE_DIR" ] && mkdir -p "$RPM_CACHE_DIR"
 eval "$MAKE_CACHE"
 
-# Install blas and ccache
-eval "$PKG_INSTALL openblas-devel openblas-static ccache"
+# Install blas
+eval "$PKG_INSTALL openblas-devel openblas-static"
+
+# Install ccache (prebuilt binary for NVCC support, RPM versions are too old)
+CCACHE_VERSION="${CCACHE_VERSION:-4.13}"
+CCACHE_URL="https://github.com/ccache/ccache/releases/download/v${CCACHE_VERSION}/ccache-${CCACHE_VERSION}-linux-x86_64-musl-static.tar.xz"
+curl -fsSL "$CCACHE_URL" | tar -xJ --strip-components=1 -C /usr/local/bin/ "ccache-${CCACHE_VERSION}-linux-x86_64-musl-static/ccache"
 
 # Configure ccache
 export CCACHE_DIR='/host/tmp/.cache/ccache'
