@@ -87,6 +87,39 @@ env = "FAISS_ENABLE_ROCM"
 [tool.scikit-build.cmake.define.FAISS_ENABLE_RAFT]
 env = "FAISS_ENABLE_RAFT"
 
+[tool.scikit-build.cmake.define.cuvs_DIR]
+env = "FAISS_CUVS_DIR"
+
+[tool.scikit-build.cmake.define.raft_DIR]
+env = "FAISS_RAFT_DIR"
+
+[tool.scikit-build.cmake.define.rmm_DIR]
+env = "FAISS_RMM_DIR"
+
+[tool.scikit-build.cmake.define.hnswlib_DIR]
+env = "FAISS_HNSWLIB_DIR"
+
+[tool.scikit-build.cmake.define.cuco_DIR]
+env = "FAISS_CUCO_DIR"
+
+[tool.scikit-build.cmake.define.NvidiaCutlass_DIR]
+env = "FAISS_NVIDIA_CUTLASS_DIR"
+
+[tool.scikit-build.cmake.define.nvtx3_DIR]
+env = "FAISS_NVTX3_DIR"
+
+[tool.scikit-build.cmake.define.rapids_logger_DIR]
+env = "FAISS_RAPIDS_LOGGER_DIR"
+
+[tool.scikit-build.cmake.define.CMAKE_C_COMPILER]
+env = "FAISS_C_COMPILER"
+
+[tool.scikit-build.cmake.define.CMAKE_CXX_COMPILER]
+env = "FAISS_CXX_COMPILER"
+
+[tool.scikit-build.cmake.define.CMAKE_CUDA_HOST_COMPILER]
+env = "FAISS_CUDA_HOST_COMPILER"
+
 [tool.scikit-build.wheel]
 exclude = ["*.cxx"]
 
@@ -96,7 +129,7 @@ skip = "pp* *-musllinux* *i686"
 manylinux-x86_64-image = "manylinux_2_28"
 
 [tool.cibuildwheel.linux]
-before-all = "CUDA_VERSION=\"12.4.1\" CUVS_VERSION=\"25.10.*\" NVIDIA_EXTRA_INDEX_URL=\"https://pypi.nvidia.com\" CMAKE_VERSION=\"3.30.4\" script/build.sh"
+before-all = "CUDA_VERSION=\"12.4.1\" CUVS_VERSION=\"25.10.*\" NVIDIA_EXTRA_INDEX_URL=\"https://pypi.nvidia.com\" CMAKE_VERSION=\"3.30.4\" RAPIDS_WHEEL_DIR=\"/usr/local/rapids-wheel-deps\" script/build.sh"
 environment-pass = ["NJOB", "FAISS_OPT_LEVEL", "CUDA_ARCHITECTURES"]
 before-test = "uv sync --project variant/gpu-cuvs --no-install-project --active"
 test-extras = ["fix-cuda"]
@@ -111,3 +144,15 @@ FAISS_ENABLE_GPU = "ON"
 FAISS_ENABLE_CUVS = "ON"
 PIP_EXTRA_INDEX_URL = "https://pypi.nvidia.com"
 UV_EXTRA_INDEX_URL = "https://pypi.nvidia.com"
+CMAKE_PREFIX_PATH = "/usr/local/rapids-wheel-deps/libcuvs;/usr/local/rapids-wheel-deps/libraft;/usr/local/rapids-wheel-deps/librmm;/usr/local/rapids-wheel-deps/rapids_logger"
+FAISS_CUVS_DIR = "/usr/local/rapids-wheel-deps/libcuvs/lib64/cmake/cuvs"
+FAISS_RAFT_DIR = "/usr/local/rapids-wheel-deps/libraft/lib64/cmake/raft"
+FAISS_RMM_DIR = "/usr/local/rapids-wheel-deps/librmm/lib64/cmake/rmm"
+FAISS_HNSWLIB_DIR = "/usr/local/rapids-wheel-deps/libcuvs/lib64/cmake/hnswlib"
+FAISS_CUCO_DIR = "/usr/local/rapids-wheel-deps/libraft/lib64/cmake/cuco"
+FAISS_NVIDIA_CUTLASS_DIR = "/usr/local/rapids-wheel-deps/libraft/lib64/cmake/NvidiaCutlass"
+FAISS_NVTX3_DIR = "/usr/local/rapids-wheel-deps/librmm/lib64/cmake/nvtx3"
+FAISS_RAPIDS_LOGGER_DIR = "/usr/local/rapids-wheel-deps/rapids_logger/lib64/cmake/rapids_logger"
+FAISS_C_COMPILER = "/opt/rh/gcc-toolset-13/root/usr/bin/gcc"
+FAISS_CXX_COMPILER = "/opt/rh/gcc-toolset-13/root/usr/bin/g++"
+FAISS_CUDA_HOST_COMPILER = "/opt/rh/gcc-toolset-13/root/usr/bin/g++"

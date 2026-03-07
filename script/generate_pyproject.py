@@ -30,6 +30,8 @@ from pydanclick import from_pydantic
 from pydantic import BaseModel
 
 GPU_VARIANTS = {"gpu-cu11", "gpu-cu12", "gpu-cuvs"}
+RAPIDS_WHEEL_DIR = "/usr/local/rapids-wheel-deps"
+GCC_TOOLSET_13_BIN = "/opt/rh/gcc-toolset-13/root/usr/bin"
 CUDA_COMPONENT_PACKAGES = {
     "cuda_cudart": "nvidia-cuda-runtime-cu{major}",
     "libcublas": "nvidia-cublas-cu{major}",
@@ -153,9 +155,33 @@ pytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))
             build_envs["CUVS_VERSION"] = config["cuvs"]["version"]
             build_envs["NVIDIA_EXTRA_INDEX_URL"] = config["python"]["extra-index-url"][0]
             build_envs["CMAKE_VERSION"] = config["build"]["cmake-version"]
+            build_envs["RAPIDS_WHEEL_DIR"] = RAPIDS_WHEEL_DIR
             envs["FAISS_ENABLE_CUVS"] = "ON"
             envs["PIP_EXTRA_INDEX_URL"] = config["python"]["extra-index-url"][0]
             envs["UV_EXTRA_INDEX_URL"] = config["python"]["extra-index-url"][0]
+            envs["CMAKE_PREFIX_PATH"] = ";".join(
+                [
+                    f"{RAPIDS_WHEEL_DIR}/libcuvs",
+                    f"{RAPIDS_WHEEL_DIR}/libraft",
+                    f"{RAPIDS_WHEEL_DIR}/librmm",
+                    f"{RAPIDS_WHEEL_DIR}/rapids_logger",
+                ]
+            )
+            envs["FAISS_CUVS_DIR"] = f"{RAPIDS_WHEEL_DIR}/libcuvs/lib64/cmake/cuvs"
+            envs["FAISS_RAFT_DIR"] = f"{RAPIDS_WHEEL_DIR}/libraft/lib64/cmake/raft"
+            envs["FAISS_RMM_DIR"] = f"{RAPIDS_WHEEL_DIR}/librmm/lib64/cmake/rmm"
+            envs["FAISS_HNSWLIB_DIR"] = f"{RAPIDS_WHEEL_DIR}/libcuvs/lib64/cmake/hnswlib"
+            envs["FAISS_CUCO_DIR"] = f"{RAPIDS_WHEEL_DIR}/libraft/lib64/cmake/cuco"
+            envs["FAISS_NVIDIA_CUTLASS_DIR"] = (
+                f"{RAPIDS_WHEEL_DIR}/libraft/lib64/cmake/NvidiaCutlass"
+            )
+            envs["FAISS_NVTX3_DIR"] = f"{RAPIDS_WHEEL_DIR}/librmm/lib64/cmake/nvtx3"
+            envs["FAISS_RAPIDS_LOGGER_DIR"] = (
+                f"{RAPIDS_WHEEL_DIR}/rapids_logger/lib64/cmake/rapids_logger"
+            )
+            envs["FAISS_C_COMPILER"] = f"{GCC_TOOLSET_13_BIN}/gcc"
+            envs["FAISS_CXX_COMPILER"] = f"{GCC_TOOLSET_13_BIN}/g++"
+            envs["FAISS_CUDA_HOST_COMPILER"] = f"{GCC_TOOLSET_13_BIN}/g++"
         enviromnet_pass = ["CUDA_ARCHITECTURES"]
         test_command = """
 # CPU Test

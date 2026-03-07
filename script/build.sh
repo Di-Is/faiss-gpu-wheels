@@ -40,6 +40,7 @@ FAISS_ENABLE_RAFT=${FAISS_ENABLE_RAFT:-"OFF"}
 CUVS_VERSION=${CUVS_VERSION:-"25.10.*"}
 CMAKE_VERSION=${CMAKE_VERSION:-""}
 NVIDIA_EXTRA_INDEX_URL=${NVIDIA_EXTRA_INDEX_URL:-"https://pypi.nvidia.com"}
+RAPIDS_WHEEL_DIR=${RAPIDS_WHEEL_DIR:-"/usr/local/rapids-wheel-deps"}
 BUILD_PYTHON=${BUILD_PYTHON:-"$(command -v python3)"}
 if [ "$FAISS_ENABLE_CUVS" == "ON" ] && [ -x "/opt/python/cp310-cp310/bin/python3" ]; then
     BUILD_PYTHON="/opt/python/cp310-cp310/bin/python3"
@@ -139,7 +140,8 @@ if [ "$FAISS_ENABLE_CUVS" == "ON" ]; then
 
     # libcuvs/libraft wheels declare NCCL as a runtime dependency.
     # Because we install RAPIDS wheels with --no-deps, provide libnccl.so.2 explicitly for the linker.
-    uv pip install --system --python "$BUILD_PYTHON" --no-cache \
+    mkdir -p "$RAPIDS_WHEEL_DIR"
+    uv pip install --python "$BUILD_PYTHON" --target "$RAPIDS_WHEEL_DIR" --no-cache \
         --extra-index-url "${NVIDIA_EXTRA_INDEX_URL}" --only-binary :all: --no-deps \
         "libcuvs-cu12==${CUVS_VERSION}" \
         "libraft-cu12==${CUVS_VERSION}" \
@@ -147,74 +149,15 @@ if [ "$FAISS_ENABLE_CUVS" == "ON" ]; then
         "rapids-logger==0.1.*" \
         "nvidia-nccl-cu12>=2.19"
 
-    RAPIDS_CMAKE_PREFIX_PATH=$("$BUILD_PYTHON" - <<'PY'
-from importlib import import_module
-from pathlib import Path
-
-modules = ["libcuvs", "libraft", "librmm", "rapids_logger"]
-prefixes = []
-for name in modules:
-    root = Path(import_module(name).__file__).resolve().parent
-    prefixes.extend((root, root / "lib64", root / "lib64/cmake", root / "lib64/rapids"))
-print(";".join(str(path) for path in prefixes))
-PY
-)
-    export cuvs_DIR=$("$BUILD_PYTHON" - <<'PY'
-from importlib import import_module
-from pathlib import Path
-
-print(Path(import_module("libcuvs").__file__).resolve().parent / "lib64/cmake/cuvs")
-PY
-)
-    export raft_DIR=$("$BUILD_PYTHON" - <<'PY'
-from importlib import import_module
-from pathlib import Path
-
-print(Path(import_module("libraft").__file__).resolve().parent / "lib64/cmake/raft")
-PY
-)
-    export rmm_DIR=$("$BUILD_PYTHON" - <<'PY'
-from importlib import import_module
-from pathlib import Path
-
-print(Path(import_module("librmm").__file__).resolve().parent / "lib64/cmake/rmm")
-PY
-)
-    export hnswlib_DIR=$("$BUILD_PYTHON" - <<'PY'
-from importlib import import_module
-from pathlib import Path
-
-print(Path(import_module("libcuvs").__file__).resolve().parent / "lib64/cmake/hnswlib")
-PY
-)
-    export cuco_DIR=$("$BUILD_PYTHON" - <<'PY'
-from importlib import import_module
-from pathlib import Path
-
-print(Path(import_module("libraft").__file__).resolve().parent / "lib64/cmake/cuco")
-PY
-)
-    export NvidiaCutlass_DIR=$("$BUILD_PYTHON" - <<'PY'
-from importlib import import_module
-from pathlib import Path
-
-print(Path(import_module("libraft").__file__).resolve().parent / "lib64/cmake/NvidiaCutlass")
-PY
-)
-    export nvtx3_DIR=$("$BUILD_PYTHON" - <<'PY'
-from importlib import import_module
-from pathlib import Path
-
-print(Path(import_module("librmm").__file__).resolve().parent / "lib64/cmake/nvtx3")
-PY
-)
-    export rapids_logger_DIR=$("$BUILD_PYTHON" - <<'PY'
-from importlib import import_module
-from pathlib import Path
-
-print(Path(import_module("rapids_logger").__file__).resolve().parent / "lib64/cmake/rapids_logger")
-PY
-)
+    RAPIDS_CMAKE_PREFIX_PATH="${RAPIDS_WHEEL_DIR}/libcuvs;${RAPIDS_WHEEL_DIR}/libraft;${RAPIDS_WHEEL_DIR}/librmm;${RAPIDS_WHEEL_DIR}/rapids_logger"
+    export cuvs_DIR="${RAPIDS_WHEEL_DIR}/libcuvs/lib64/cmake/cuvs"
+    export raft_DIR="${RAPIDS_WHEEL_DIR}/libraft/lib64/cmake/raft"
+    export rmm_DIR="${RAPIDS_WHEEL_DIR}/librmm/lib64/cmake/rmm"
+    export hnswlib_DIR="${RAPIDS_WHEEL_DIR}/libcuvs/lib64/cmake/hnswlib"
+    export cuco_DIR="${RAPIDS_WHEEL_DIR}/libraft/lib64/cmake/cuco"
+    export NvidiaCutlass_DIR="${RAPIDS_WHEEL_DIR}/libraft/lib64/cmake/NvidiaCutlass"
+    export nvtx3_DIR="${RAPIDS_WHEEL_DIR}/librmm/lib64/cmake/nvtx3"
+    export rapids_logger_DIR="${RAPIDS_WHEEL_DIR}/rapids_logger/lib64/cmake/rapids_logger"
     export CMAKE_PREFIX_PATH="${RAPIDS_CMAKE_PREFIX_PATH}${CMAKE_PREFIX_PATH:+;${CMAKE_PREFIX_PATH}}"
 fi
 
