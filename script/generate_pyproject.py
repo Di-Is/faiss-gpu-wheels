@@ -199,6 +199,10 @@ pytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py
         v["library"] for v in config["python"]["preload-library"] if "library" in v
     ] + config["python"].get("auditwheel-exclude", [])
     repair_option = " ".join([i for library in repair_excludes for i in ["--exclude", library]])
+    repair_command = f"auditwheel repair -w {{dest_dir}} {{wheel}} {repair_option}".strip()
+    repair_command_prefix = config["python"].get("repair-wheel-command-prefix", "")
+    if repair_command_prefix:
+        repair_command = f"{repair_command_prefix} {repair_command}"
     env_vars = " ".join([f'{k}="{v}"' for k, v in build_envs.items()])
     pyproject["tool"]["cibuildwheel"]["linux"]["before-all"] = f"{env_vars} script/build.sh"
     pyproject["tool"]["cibuildwheel"]["linux"]["environment-pass"] += enviromnet_pass
@@ -208,7 +212,7 @@ pytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py
     )
     pyproject["tool"]["cibuildwheel"]["linux"]["test-extras"] = test_extras
     pyproject["tool"]["cibuildwheel"]["linux"] |= {
-        "repair-wheel-command": f"auditwheel repair -w {{dest_dir}} {{wheel}} {repair_option}",
+        "repair-wheel-command": repair_command,
         "test-command": test_command,
     }
     pyproject["tool"]["cibuildwheel"] |= config.get("cibuildwheel", {})
