@@ -149,7 +149,10 @@ pytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))
             "Environment :: GPU :: NVIDIA CUDA",
             f"Environment :: GPU :: NVIDIA CUDA :: {major}",
         ]
-        build_envs = {"CUDA_VERSION": config["cuda"]["version"]}
+        build_envs = {
+            "CUDA_VERSION": config["cuda"]["version"],
+            "CUDA_ARCHITECTURES": config["cuda"]["target-archs"],
+        }
         envs = {"FAISS_ENABLE_GPU": "ON"}
         if variant == "gpu-cuvs":
             build_envs["CUVS_VERSION"] = config["cuvs"]["version"]
@@ -195,9 +198,12 @@ pytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py
     pyproject["project"]["dependencies"] += dependencies
     pyproject["project"]["optional-dependencies"] = optional_dependencies
     pyproject["project"]["classifiers"] += classifiers
-    repair_excludes = [
-        v["library"] for v in config["python"]["preload-library"] if "library" in v
-    ] + config["python"].get("auditwheel-exclude", [])
+    repair_excludes = list(
+        dict.fromkeys(
+            [v["library"] for v in config["python"]["preload-library"] if "library" in v]
+            + config["python"].get("auditwheel-exclude", [])
+        )
+    )
     repair_option = " ".join([i for library in repair_excludes for i in ["--exclude", library]])
     repair_command = f"auditwheel repair -w {{dest_dir}} {{wheel}} {repair_option}".strip()
     repair_command_prefix = config["python"].get("repair-wheel-command-prefix", "")

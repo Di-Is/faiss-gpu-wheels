@@ -1,6 +1,6 @@
 [cuda]
 version = "12.4.1"
-target-archs = "70-real;80-real"
+target-archs = "70-real;80-real;86-real"
 
 [build]
 cmake-version = "3.30.4"
@@ -32,6 +32,10 @@ preload-library = [
     { "group" = "cuda", "package" = "nvidia-cuda-runtime-cu12", "library" = "libcudart.so.12" },
     { "group" = "cuda", "package" = "nvidia-cublas-cu12", "library" = "libcublas.so.12" },
     { "group" = "cuda", "package" = "nvidia-cublas-cu12", "library" = "libcublasLt.so.12" },
+    { "group" = "cuda", "package" = "nvidia-curand-cu12", "library" = "libcurand.so.10" },
+    { "group" = "cuda", "package" = "nvidia-cusolver-cu12", "library" = "libcusolver.so.11" },
+    { "group" = "cuda", "package" = "nvidia-cusparse-cu12", "library" = "libcusparse.so.12" },
+    { "group" = "cuda", "package" = "nvidia-nvjitlink-cu12", "library" = "libnvJitLink.so.12" },
     { "group" = "cuvs", "module" = "libcuvs", "function" = "load_library" },
 ]
 

@@ -168,7 +168,7 @@ Build `faiss-gpu-cu11`, `faiss-gpu-cu12`, and `faiss-gpu-cuvs` wheels using [cib
 # Configure build parameters
 export NJOB="32"                          # Number of parallel build jobs
 export FAISS_OPT_LEVEL="generic"          # Options: generic, avx2, avx512
-export CUDA_ARCHITECTURES="70-real;80-real"  # Target GPU architectures
+export CUDA_ARCHITECTURES="70-real;80-real;86-real"  # Target GPU architectures
 
 # For builds without GPU testing
 export CIBW_TEST_COMMAND_LINUX=""
