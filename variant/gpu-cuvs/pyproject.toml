@@ -150,6 +150,7 @@ exclude = ["*.cxx"]
 
 [tool.cibuildwheel]
 build-frontend = "build[uv]"
+build = "cp312-*"
 skip = "pp* *-musllinux* *i686"
 manylinux-x86_64-image = "manylinux_2_28"
 
