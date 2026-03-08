@@ -1,6 +1,6 @@
 [cuda]
 version = "12.4.1"
-target-archs = "70-real;75-real;80-real;86-real"
+target-archs = "70-real;75-real;80-real;86-real;90a-real"
 
 [build]
 cmake-version = "3.30.4"

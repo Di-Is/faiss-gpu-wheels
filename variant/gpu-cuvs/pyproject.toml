@@ -155,7 +155,7 @@ skip = "pp* *-musllinux* *i686"
 manylinux-x86_64-image = "manylinux_2_28"
 
 [tool.cibuildwheel.linux]
-before-all = "CUDA_VERSION=\"12.4.1\" CUDA_ARCHITECTURES=\"70-real;75-real;80-real;86-real\" CUVS_VERSION=\"25.10.*\" NVIDIA_EXTRA_INDEX_URL=\"https://pypi.nvidia.com\" CMAKE_VERSION=\"3.30.4\" RAPIDS_WHEEL_DIR=\"/usr/local/rapids-wheel-deps\" script/build.sh"
+before-all = "CUDA_VERSION=\"12.4.1\" CUDA_ARCHITECTURES=\"70-real;75-real;80-real;86-real;90a-real\" CUVS_VERSION=\"25.10.*\" NVIDIA_EXTRA_INDEX_URL=\"https://pypi.nvidia.com\" CMAKE_VERSION=\"3.30.4\" RAPIDS_WHEEL_DIR=\"/usr/local/rapids-wheel-deps\" script/build.sh"
 environment-pass = ["NJOB", "FAISS_OPT_LEVEL", "CUDA_ARCHITECTURES"]
 before-test = "uv sync --project variant/gpu-cuvs --no-install-project --active"
 test-extras = ["fix-cuda"]
