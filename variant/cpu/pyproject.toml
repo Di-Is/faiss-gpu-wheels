@@ -11,6 +11,7 @@ build-backend = "scikit_build_core.build"
 [project]
 name = "faiss-cpu"
 version = "1.14.0"
+version = "1.14.1.post1"
 dependencies = ["numpy>=2,<3", "packaging"]
 requires-python = ">=3.10,<3.14"
 authors = [{ name = "Di-Is", email = "rhoxbox@gmail.com" }]
@@ -18,19 +19,19 @@ description = "A library for efficient similarity search and clustering of dense
 readme = "../../README.md"
 keywords = ["search nearest neighbors"]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: POSIX",
-    "Intended Audience :: Developers",
-    "Intended Audience :: Science/Research",
-    "Topic :: Scientific/Engineering :: Artificial Intelligence",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3 :: Only",
+  "Development Status :: 5 - Production/Stable",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: POSIX",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3 :: Only",
 ]
 
 [project.license]
@@ -46,7 +47,7 @@ dev = ["pytest", "pytest-xdist", "scipy", "torch"]
 
 [tool.uv]
 index = [
-    { name = "torch-index", url = "https://download.pytorch.org/whl/cpu", explicit = true },
+  { name = "torch-index", url = "https://download.pytorch.org/whl/cpu", explicit = true },
 ]
 
 [tool.uv.sources.torch]

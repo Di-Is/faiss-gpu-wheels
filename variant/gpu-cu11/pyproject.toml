@@ -5,39 +5,39 @@
 #
 # This file is created by the `generate_pyproject.py`.
 [build-system]
-requires = ["scikit-build-core", "swig", "numpy>=2,<3"]
+requires = ["numpy>=2,<3", "scikit-build-core", "swig"]
 build-backend = "scikit_build_core.build"
 
 [project]
 name = "faiss-gpu-cu11"
-version = "1.14.0"
-dependencies = [
-    "numpy>=2,<3",
-    "packaging",
-    "nvidia-cuda-runtime-cu11>=11.8.89",
-    "nvidia-cublas-cu11>=11.11.3.6",
-]
-requires-python = ">=3.10,<3.14"
-authors = [{ name = "Di-Is", email = "rhoxbox@gmail.com" }]
+version = "1.14.1.post1"
 description = "A library for efficient similarity search and clustering of dense vectors."
 readme = "../../README.md"
+requires-python = ">=3.10,<3.14"
+authors = [{ name = "Di-Is", email = "rhoxbox@gmail.com" }]
 keywords = ["search nearest neighbors"]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: POSIX",
-    "Intended Audience :: Developers",
-    "Intended Audience :: Science/Research",
-    "Topic :: Scientific/Engineering :: Artificial Intelligence",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3 :: Only",
-    "Environment :: GPU :: NVIDIA CUDA",
-    "Environment :: GPU :: NVIDIA CUDA :: 11",
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: GPU :: NVIDIA CUDA",
+  "Environment :: GPU :: NVIDIA CUDA :: 11",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: POSIX",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "numpy>=2,<3",
+  "nvidia-cublas-cu11>=11.11.3.6",
+  "nvidia-cuda-runtime-cu11>=11.8.89",
+  "packaging",
 ]
 
 [project.license]
@@ -48,8 +48,8 @@ faiss-gpu-wheels = "https://github.com/Di-Is/faiss-gpu-wheels"
 
 [project.optional-dependencies]
 fix-cuda = [
-    "nvidia-cuda-runtime-cu11==11.8.89",
-    "nvidia-cublas-cu11==11.11.3.6",
+  "nvidia-cuda-runtime-cu11==11.8.89",
+  "nvidia-cublas-cu11==11.11.3.6",
 ]
 
 [dependency-groups]
@@ -57,7 +57,7 @@ dev = ["pytest", "pytest-xdist", "scipy", "torch"]
 
 [tool.uv]
 index = [
-    { name = "torch-index", url = "https://download.pytorch.org/whl/cu118", explicit = true },
+  { name = "torch-index", url = "https://download.pytorch.org/whl/cu118", explicit = true },
 ]
 
 [tool.uv.sources.torch]
