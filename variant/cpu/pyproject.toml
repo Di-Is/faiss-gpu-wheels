@@ -5,34 +5,33 @@
 #
 # This file is created by the `generate_pyproject.py`.
 [build-system]
-requires = ["scikit-build-core", "swig", "numpy>=2,<3"]
+requires = ["numpy>=2,<3", "scikit-build-core", "swig"]
 build-backend = "scikit_build_core.build"
 
 [project]
 name = "faiss-cpu"
-version = "1.14.0"
 version = "1.14.1.post1"
-dependencies = ["numpy>=2,<3", "packaging"]
-requires-python = ">=3.10,<3.14"
-authors = [{ name = "Di-Is", email = "rhoxbox@gmail.com" }]
 description = "A library for efficient similarity search and clustering of dense vectors."
 readme = "../../README.md"
+requires-python = ">=3.10,<3.14"
+authors = [{ name = "Di-Is", email = "rhoxbox@gmail.com" }]
 keywords = ["search nearest neighbors"]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
-  "License :: OSI Approved :: MIT License",
-  "Operating System :: POSIX",
   "Intended Audience :: Developers",
   "Intended Audience :: Science/Research",
-  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: POSIX",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
-  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
+dependencies = ["numpy>=2,<3", "packaging"]
 
 [project.license]
 file = "../../LICENSE"

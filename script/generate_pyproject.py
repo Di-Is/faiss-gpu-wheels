@@ -30,7 +30,6 @@ from pydanclick import from_pydantic
 from pydantic import BaseModel
 
 GPU_VARIANTS = {"gpu-cu11", "gpu-cu12", "gpu-cuvs"}
-RAPIDS_WHEEL_DIR = "/usr/local/rapids-wheel-deps"
 GCC_TOOLSET_13_BIN = "/opt/rh/gcc-toolset-13/root/usr/bin"
 CUDA_COMPONENT_PACKAGES = {
     "cuda_cudart": "nvidia-cuda-runtime-cu{major}",
@@ -68,7 +67,7 @@ def get_cuda_version(version: str, component: str) -> str:
         with cache_file.open("rb") as f:
             data = json.load(f)
     else:
-        url = f"https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/{json_file}"
+        url = f"https://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/{json_file}"
         response = requests.get(url, timeout=30)
         response.raise_for_status()
         data = response.json()
@@ -119,7 +118,7 @@ def cli(args: Args) -> None:
         classifiers = []
         build_envs = {}
         envs = {}
-        enviromnet_pass = []
+        environment_pass = []
         test_extras = []
         test_command = """
 # CPU Test
@@ -151,41 +150,41 @@ pytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))
         ]
         build_envs = {
             "CUDA_VERSION": config["cuda"]["version"],
-            "CUDA_ARCHITECTURES": config["cuda"]["target-archs"],
         }
-        envs = {"FAISS_ENABLE_GPU": "ON"}
+        envs = {"FAISS_ENABLE_GPU": "ON", "CUDA_ARCHITECTURES": config["cuda"]["target-archs"]}
         if variant == "gpu-cuvs":
+            rapids_wheel_dir = config["build"]["rapids-wheel-dir"]
             build_envs["CUVS_VERSION"] = config["cuvs"]["version"]
             build_envs["NVIDIA_EXTRA_INDEX_URL"] = config["python"]["extra-index-url"][0]
             build_envs["CMAKE_VERSION"] = config["build"]["cmake-version"]
-            build_envs["RAPIDS_WHEEL_DIR"] = RAPIDS_WHEEL_DIR
+            build_envs["RAPIDS_WHEEL_DIR"] = rapids_wheel_dir
             envs["FAISS_ENABLE_CUVS"] = "ON"
             envs["PIP_EXTRA_INDEX_URL"] = config["python"]["extra-index-url"][0]
             envs["UV_EXTRA_INDEX_URL"] = config["python"]["extra-index-url"][0]
             envs["CMAKE_PREFIX_PATH"] = ";".join(
                 [
-                    f"{RAPIDS_WHEEL_DIR}/libcuvs",
-                    f"{RAPIDS_WHEEL_DIR}/libraft",
-                    f"{RAPIDS_WHEEL_DIR}/librmm",
-                    f"{RAPIDS_WHEEL_DIR}/rapids_logger",
+                    f"{rapids_wheel_dir}/libcuvs",
+                    f"{rapids_wheel_dir}/libraft",
+                    f"{rapids_wheel_dir}/librmm",
+                    f"{rapids_wheel_dir}/rapids_logger",
                 ]
             )
-            envs["FAISS_CUVS_DIR"] = f"{RAPIDS_WHEEL_DIR}/libcuvs/lib64/cmake/cuvs"
-            envs["FAISS_RAFT_DIR"] = f"{RAPIDS_WHEEL_DIR}/libraft/lib64/cmake/raft"
-            envs["FAISS_RMM_DIR"] = f"{RAPIDS_WHEEL_DIR}/librmm/lib64/cmake/rmm"
-            envs["FAISS_HNSWLIB_DIR"] = f"{RAPIDS_WHEEL_DIR}/libcuvs/lib64/cmake/hnswlib"
-            envs["FAISS_CUCO_DIR"] = f"{RAPIDS_WHEEL_DIR}/libraft/lib64/cmake/cuco"
+            envs["FAISS_CUVS_DIR"] = f"{rapids_wheel_dir}/libcuvs/lib64/cmake/cuvs"
+            envs["FAISS_RAFT_DIR"] = f"{rapids_wheel_dir}/libraft/lib64/cmake/raft"
+            envs["FAISS_RMM_DIR"] = f"{rapids_wheel_dir}/librmm/lib64/cmake/rmm"
+            envs["FAISS_HNSWLIB_DIR"] = f"{rapids_wheel_dir}/libcuvs/lib64/cmake/hnswlib"
+            envs["FAISS_CUCO_DIR"] = f"{rapids_wheel_dir}/libraft/lib64/cmake/cuco"
             envs["FAISS_NVIDIA_CUTLASS_DIR"] = (
-                f"{RAPIDS_WHEEL_DIR}/libraft/lib64/cmake/NvidiaCutlass"
+                f"{rapids_wheel_dir}/libraft/lib64/cmake/NvidiaCutlass"
             )
-            envs["FAISS_NVTX3_DIR"] = f"{RAPIDS_WHEEL_DIR}/librmm/lib64/cmake/nvtx3"
+            envs["FAISS_NVTX3_DIR"] = f"{rapids_wheel_dir}/librmm/lib64/cmake/nvtx3"
             envs["FAISS_RAPIDS_LOGGER_DIR"] = (
-                f"{RAPIDS_WHEEL_DIR}/rapids_logger/lib64/cmake/rapids_logger"
+                f"{rapids_wheel_dir}/rapids_logger/lib64/cmake/rapids_logger"
             )
             envs["FAISS_C_COMPILER"] = f"{GCC_TOOLSET_13_BIN}/gcc"
             envs["FAISS_CXX_COMPILER"] = f"{GCC_TOOLSET_13_BIN}/g++"
             envs["FAISS_CUDA_HOST_COMPILER"] = f"{GCC_TOOLSET_13_BIN}/g++"
-        enviromnet_pass = ["CUDA_ARCHITECTURES"]
+        environment_pass = ["CUDA_ARCHITECTURES"]
         test_command = """
 # CPU Test
 pytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) &&
@@ -210,8 +209,9 @@ pytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py
     if repair_command_prefix:
         repair_command = f"{repair_command_prefix} {repair_command}"
     env_vars = " ".join([f'{k}="{v}"' for k, v in build_envs.items()])
-    pyproject["tool"]["cibuildwheel"]["linux"]["before-all"] = f"{env_vars} script/build.sh"
-    pyproject["tool"]["cibuildwheel"]["linux"]["environment-pass"] += enviromnet_pass
+    before_all = f"{env_vars} script/build.sh" if env_vars else "script/build.sh"
+    pyproject["tool"]["cibuildwheel"]["linux"]["before-all"] = before_all
+    pyproject["tool"]["cibuildwheel"]["linux"]["environment-pass"] += environment_pass
     pyproject["tool"]["cibuildwheel"]["linux"]["environment"] |= envs
     pyproject["tool"]["cibuildwheel"]["linux"]["before-test"] = (
         f"uv sync --project variant/{variant} --no-install-project --active"

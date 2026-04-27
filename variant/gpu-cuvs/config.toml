@@ -4,6 +4,7 @@ target-archs = "70-real;75-real;80-real;86-real;90a-real"
 
 [build]
 cmake-version = "3.30.4"
+rapids-wheel-dir = "/usr/local/rapids-wheel-deps"
 
 [cuvs]
 version = "25.10.*"

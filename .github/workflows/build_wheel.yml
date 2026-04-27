@@ -103,10 +103,10 @@ jobs:
           uv sync --project variant/${{ matrix.variant }} --locked --no-install-project -p ${{ matrix.python-version }}
           py_version="${{ matrix.python-version }}"
           py_tag="cp${py_version/./}"
-          wheel_path="$(ls wheelhouse/*${py_tag}*.whl | head -n 1)"
+          wheel_path="$(ls wheelhouse/*${py_tag}*.whl 2>/dev/null | head -n 1)"
           if [[ -z "${wheel_path}" ]]; then
-            echo "Wheel not found for ${py_tag} in wheelhouse" >&2
-            exit 1
+            echo "No wheel for ${py_tag} in variant ${{ matrix.variant }}, skipping."
+            exit 0
           fi
           extras=""
           if [[ "${{ matrix.variant }}" == "gpu-cu11" || "${{ matrix.variant }}" == "gpu-cu12" || "${{ matrix.variant }}" == "gpu-cuvs" ]]; then

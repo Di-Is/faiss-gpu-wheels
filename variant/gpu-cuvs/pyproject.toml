@@ -10,7 +10,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "faiss-gpu-cuvs"
-version = "1.14.0"
+version = "1.14.1"
 dependencies = [
     "numpy>=2,<3",
     "packaging",
@@ -150,12 +150,11 @@ exclude = ["*.cxx"]
 
 [tool.cibuildwheel]
 build-frontend = "build[uv]"
-build = "cp312-*"
 skip = "pp* *-musllinux* *i686"
 manylinux-x86_64-image = "manylinux_2_28"
 
 [tool.cibuildwheel.linux]
-before-all = "CUDA_VERSION=\"12.4.1\" CUDA_ARCHITECTURES=\"70-real;75-real;80-real;86-real;90a-real\" CUVS_VERSION=\"25.10.*\" NVIDIA_EXTRA_INDEX_URL=\"https://pypi.nvidia.com\" CMAKE_VERSION=\"3.30.4\" RAPIDS_WHEEL_DIR=\"/usr/local/rapids-wheel-deps\" script/build.sh"
+before-all = "CUDA_VERSION=\"12.4.1\" CUVS_VERSION=\"25.10.*\" NVIDIA_EXTRA_INDEX_URL=\"https://pypi.nvidia.com\" CMAKE_VERSION=\"3.30.4\" RAPIDS_WHEEL_DIR=\"/usr/local/rapids-wheel-deps\" script/build.sh"
 environment-pass = ["NJOB", "FAISS_OPT_LEVEL", "CUDA_ARCHITECTURES"]
 before-test = "uv sync --project variant/gpu-cuvs --no-install-project --active"
 test-extras = ["fix-cuda"]
@@ -167,6 +166,7 @@ UV_CACHE_DIR = "/host/tmp/.cache/uv"
 UV_LINK_MODE = "copy"
 OMP_NUM_THREADS = "1"
 FAISS_ENABLE_GPU = "ON"
+CUDA_ARCHITECTURES = "70-real;75-real;80-real;86-real;90a-real"
 FAISS_ENABLE_CUVS = "ON"
 PIP_EXTRA_INDEX_URL = "https://pypi.nvidia.com"
 UV_EXTRA_INDEX_URL = "https://pypi.nvidia.com"

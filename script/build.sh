@@ -54,8 +54,12 @@ CMAKE_VERSION=${CMAKE_VERSION:-""}
 NVIDIA_EXTRA_INDEX_URL=${NVIDIA_EXTRA_INDEX_URL:-"https://pypi.nvidia.com"}
 RAPIDS_WHEEL_DIR=${RAPIDS_WHEEL_DIR:-"/usr/local/rapids-wheel-deps"}
 BUILD_PYTHON=${BUILD_PYTHON:-"$(command -v python3)"}
-if [ "$FAISS_ENABLE_CUVS" == "ON" ] && [ -x "/opt/python/cp310-cp310/bin/python3" ]; then
-    BUILD_PYTHON="/opt/python/cp310-cp310/bin/python3"
+if [ "$FAISS_ENABLE_CUVS" == "ON" ]; then
+    _first_py=$(ls /opt/python/cp3*/bin/python3 2>/dev/null | sort -V | head -n1)
+    if [ -n "$_first_py" ] && [ -x "$_first_py" ]; then
+        BUILD_PYTHON="$_first_py"
+    fi
+    unset _first_py
 fi
 
 find_supported_cuda_host_compiler() {
