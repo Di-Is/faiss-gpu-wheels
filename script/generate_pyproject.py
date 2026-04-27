@@ -41,17 +41,21 @@ CUDA_COMPONENT_PACKAGES = {
     "libnvjitlink": "nvidia-nvjitlink-cu{major}",
 }
 
-_SKIP_FLAKY = '-k "not test_update_codebooks_with_double"'
+_FAISS_TESTS_EXTRA_OPTS = '-k "not test_update_codebooks_with_double"'
+
+_FAISS_TESTS_CMD = (
+    f"pytest {{project}}/faiss/tests/ -n $((`nproc --all`/5+1)) {_FAISS_TESTS_EXTRA_OPTS}"
+)
 
 _CPU_TEST_COMMAND = f"""
 # CPU Test
-pytest {{project}}/faiss/tests/ -n $((`nproc --all`/5+1)) {_SKIP_FLAKY} &&
+{_FAISS_TESTS_CMD} &&
 pytest {{project}}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))
 """
 
 _GPU_TEST_COMMAND = f"""
 # CPU Test
-pytest {{project}}/faiss/tests/ -n $((`nproc --all`/5+1)) {_SKIP_FLAKY} &&
+{_FAISS_TESTS_CMD} &&
 pytest {{project}}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1)) &&
 # GPU Test
 pytest {{project}}/faiss/tests/common_faiss_tests.py {{project}}/faiss/faiss/gpu/test/ &&
