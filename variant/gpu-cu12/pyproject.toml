@@ -81,6 +81,39 @@ env = "FAISS_ENABLE_ROCM"
 [tool.scikit-build.cmake.define.FAISS_ENABLE_RAFT]
 env = "FAISS_ENABLE_RAFT"
 
+[tool.scikit-build.cmake.define.cuvs_DIR]
+env = "FAISS_CUVS_DIR"
+
+[tool.scikit-build.cmake.define.raft_DIR]
+env = "FAISS_RAFT_DIR"
+
+[tool.scikit-build.cmake.define.rmm_DIR]
+env = "FAISS_RMM_DIR"
+
+[tool.scikit-build.cmake.define.hnswlib_DIR]
+env = "FAISS_HNSWLIB_DIR"
+
+[tool.scikit-build.cmake.define.cuco_DIR]
+env = "FAISS_CUCO_DIR"
+
+[tool.scikit-build.cmake.define.NvidiaCutlass_DIR]
+env = "FAISS_NVIDIA_CUTLASS_DIR"
+
+[tool.scikit-build.cmake.define.nvtx3_DIR]
+env = "FAISS_NVTX3_DIR"
+
+[tool.scikit-build.cmake.define.rapids_logger_DIR]
+env = "FAISS_RAPIDS_LOGGER_DIR"
+
+[tool.scikit-build.cmake.define.CMAKE_C_COMPILER]
+env = "FAISS_C_COMPILER"
+
+[tool.scikit-build.cmake.define.CMAKE_CXX_COMPILER]
+env = "FAISS_CXX_COMPILER"
+
+[tool.scikit-build.cmake.define.CMAKE_CUDA_HOST_COMPILER]
+env = "FAISS_CUDA_HOST_COMPILER"
+
 [tool.scikit-build.wheel]
 exclude = ["*.cxx"]
 
@@ -89,12 +122,17 @@ build-frontend = "build[uv]"
 skip = "pp* *-musllinux* *i686"
 
 [tool.cibuildwheel.linux]
-before-all = "CUDA_VERSION=\"12.1.1\" script/build.sh"
-environment-pass = ["NJOB", "FAISS_OPT_LEVEL", "CUDA_ARCHITECTURES"]
+before-all = "CUDA_VERSION=\"12.1.1\" CUDA_ARCHITECTURES=\"70-real;80-real\" script/build.sh"
+environment-pass = [
+    "NJOB",
+    "FAISS_OPT_LEVEL",
+    "CUDA_ARCHITECTURES",
+    "FAISS_TESTS_EXTRA_OPTS",
+]
 before-test = "uv sync --project variant/gpu-cu12 --no-install-project --active"
 test-extras = ["fix-cuda"]
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel} --exclude libcudart.so.12 --exclude libcublas.so.12 --exclude libcublasLt.so.12"
-test-command = "\n# CPU Test\npytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) -k \"not test_update_codebooks_with_double\" &&\npytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1)) &&\n# GPU Test\npytest {project}/faiss/tests/common_faiss_tests.py {project}/faiss/faiss/gpu/test/ &&\npytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py\n"
+test-command = "\n# CPU Test\npytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) $FAISS_TESTS_EXTRA_OPTS &&\npytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1)) &&\n# GPU Test\npytest {project}/faiss/tests/common_faiss_tests.py {project}/faiss/faiss/gpu/test/ &&\npytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py\n"
 
 [tool.cibuildwheel.linux.environment]
 UV_CACHE_DIR = "/host/tmp/.cache/uv"

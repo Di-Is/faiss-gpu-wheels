@@ -19,6 +19,7 @@ http://opensource.org/licenses/mit-license.php
 # ///
 import json
 import subprocess
+from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
@@ -29,7 +30,6 @@ import tomllib
 from pydanclick import from_pydantic
 from pydantic import BaseModel
 
-GPU_VARIANTS = {"gpu-cu11", "gpu-cu12", "gpu-cuvs"}
 RAPIDS_WHEEL_DIR = "/usr/local/rapids-wheel-deps"
 GCC_TOOLSET_13_BIN = "/opt/rh/gcc-toolset-13/root/usr/bin"
 CUDA_COMPONENT_PACKAGES = {
@@ -41,10 +41,8 @@ CUDA_COMPONENT_PACKAGES = {
     "libnvjitlink": "nvidia-nvjitlink-cu{major}",
 }
 
-_FAISS_TESTS_EXTRA_OPTS = '-k "not test_update_codebooks_with_double"'
-
 _FAISS_TESTS_CMD = (
-    f"pytest {{project}}/faiss/tests/ -n $((`nproc --all`/5+1)) {_FAISS_TESTS_EXTRA_OPTS}"
+    "pytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) $FAISS_TESTS_EXTRA_OPTS"
 )
 
 _CPU_TEST_COMMAND = f"""
@@ -63,6 +61,7 @@ pytest {{project}}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py
 """
 
 
+@lru_cache(maxsize=None)
 def get_cuda_version(version: str, component: str) -> str:
     """Get cuda toolkit component version.
 
@@ -142,16 +141,15 @@ def _build_gpu_variant_config(config: dict, variant: str) -> dict:
     ]
     if variant == "gpu-cuvs":
         dependencies.append(f"libcuvs-cu{major}=={config['cuvs']['version']}")
-    fix_cuda_components = ["cuda_cudart", "libcublas"]
-    fix_cuda_components += config["python"].get("fix-cuda-components", [])
-    optional_dependencies: dict[str, list] = {"fix-cuda": []}
-    seen_specs: set[str] = set()
-    for component in fix_cuda_components:
-        spec = get_cuda_package_spec(config["cuda"]["version"], major, component, "==")
-        if spec in seen_specs:
-            continue
-        seen_specs.add(spec)
-        optional_dependencies["fix-cuda"].append(spec)
+    fix_cuda_components = list(
+        dict.fromkeys(["cuda_cudart", "libcublas", *config["python"].get("fix-cuda-components", [])])
+    )
+    optional_dependencies: dict[str, list] = {
+        "fix-cuda": [
+            get_cuda_package_spec(config["cuda"]["version"], major, component, "==")
+            for component in fix_cuda_components
+        ]
+    }
     build_envs: dict[str, str] = {
         "CUDA_VERSION": config["cuda"]["version"],
         "CUDA_ARCHITECTURES": config["cuda"]["target-archs"],
@@ -174,7 +172,7 @@ def _build_gpu_variant_config(config: dict, variant: str) -> dict:
         ],
         "build_envs": build_envs,
         "envs": envs,
-        "environment_pass": ["CUDA_ARCHITECTURES"],
+        "environment_pass": ["CUDA_ARCHITECTURES", "FAISS_TESTS_EXTRA_OPTS"],
         "test_extras": ["fix-cuda"],
         "test_command": _GPU_TEST_COMMAND,
     }
@@ -250,7 +248,7 @@ def cli(args: Args) -> None:
             "classifiers": [],
             "build_envs": {},
             "envs": {},
-            "environment_pass": [],
+            "environment_pass": ["FAISS_TESTS_EXTRA_OPTS"],
             "test_extras": [],
             "test_command": _CPU_TEST_COMMAND,
         }
