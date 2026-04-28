@@ -19,7 +19,7 @@ http://opensource.org/licenses/mit-license.php
 # ///
 import json
 import subprocess
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 from typing import Literal
 
@@ -61,7 +61,7 @@ pytest {{project}}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py
 """
 
 
-@lru_cache(maxsize=None)
+@cache
 def get_cuda_version(version: str, component: str) -> str:
     """Get cuda toolkit component version.
 
@@ -142,7 +142,9 @@ def _build_gpu_variant_config(config: dict, variant: str) -> dict:
     if variant == "gpu-cuvs":
         dependencies.append(f"libcuvs-cu{major}=={config['cuvs']['version']}")
     fix_cuda_components = list(
-        dict.fromkeys(["cuda_cudart", "libcublas", *config["python"].get("fix-cuda-components", [])])
+        dict.fromkeys(
+            ["cuda_cudart", "libcublas", *config["python"].get("fix-cuda-components", [])]
+        )
     )
     optional_dependencies: dict[str, list] = {
         "fix-cuda": [
