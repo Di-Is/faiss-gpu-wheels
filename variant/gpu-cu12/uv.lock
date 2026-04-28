@@ -36,7 +36,7 @@ wheels = [
 
 [[package]]
 name = "faiss-gpu-cu12"
-version = "1.14.1"
+version = "1.14.1.post1"
 source = { editable = "." }
 dependencies = [
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -622,13 +622,13 @@ dependencies = [
     { name = "typing-extensions" },
 ]
 wheels = [
-    { url = "https://download.pytorch.org/whl/cu121/torch-2.5.1%2Bcu121-cp310-cp310-linux_x86_64.whl", hash = "sha256:92af92c569de5da937dd1afb45ecfdd598ec1254cf2e49e3d698cb24d71aae14" },
-    { url = "https://download.pytorch.org/whl/cu121/torch-2.5.1%2Bcu121-cp310-cp310-win_amd64.whl", hash = "sha256:9b22d6d98aa56f9317902dec0e066814a6edba1aada90110ceea2bb0678df22f" },
-    { url = "https://download.pytorch.org/whl/cu121/torch-2.5.1%2Bcu121-cp311-cp311-linux_x86_64.whl", hash = "sha256:c8ab8c92eab928a93c483f83ca8c63f13dafc10fc93ad90ed2dcb7c82ea50410" },
-    { url = "https://download.pytorch.org/whl/cu121/torch-2.5.1%2Bcu121-cp311-cp311-win_amd64.whl", hash = "sha256:4bcee18f00c43c815efad8efaa3bca584ffdc8d2cd35ef4c44c814f2739d9191" },
-    { url = "https://download.pytorch.org/whl/cu121/torch-2.5.1%2Bcu121-cp312-cp312-linux_x86_64.whl", hash = "sha256:222be02548c2e74a21a8fbc8e5b8d2eef9f9faee865d70385d2eb1b9aabcbc76" },
-    { url = "https://download.pytorch.org/whl/cu121/torch-2.5.1%2Bcu121-cp312-cp312-win_amd64.whl", hash = "sha256:473d76257636c66b22cbfac6f616d6b522ef3d3473c13decb1afda22a7b059eb" },
-    { url = "https://download.pytorch.org/whl/cu121/torch-2.5.1%2Bcu121-cp313-cp313-linux_x86_64.whl", hash = "sha256:1bfe18b79b0ff9be9383257a66c3f84621ce5f384f02c0a7c79503583d6ffd4b" },
+    { url = "https://download-r2.pytorch.org/whl/cu121/torch-2.5.1%2Bcu121-cp310-cp310-linux_x86_64.whl", hash = "sha256:92af92c569de5da937dd1afb45ecfdd598ec1254cf2e49e3d698cb24d71aae14", upload-time = "2024-10-29T23:15:46Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu121/torch-2.5.1%2Bcu121-cp310-cp310-win_amd64.whl", hash = "sha256:9b22d6d98aa56f9317902dec0e066814a6edba1aada90110ceea2bb0678df22f", upload-time = "2024-10-29T23:16:21Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu121/torch-2.5.1%2Bcu121-cp311-cp311-linux_x86_64.whl", hash = "sha256:c8ab8c92eab928a93c483f83ca8c63f13dafc10fc93ad90ed2dcb7c82ea50410", upload-time = "2024-10-29T23:18:06Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu121/torch-2.5.1%2Bcu121-cp311-cp311-win_amd64.whl", hash = "sha256:4bcee18f00c43c815efad8efaa3bca584ffdc8d2cd35ef4c44c814f2739d9191", upload-time = "2024-10-29T23:18:42Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu121/torch-2.5.1%2Bcu121-cp312-cp312-linux_x86_64.whl", hash = "sha256:222be02548c2e74a21a8fbc8e5b8d2eef9f9faee865d70385d2eb1b9aabcbc76", upload-time = "2024-10-29T23:20:25Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu121/torch-2.5.1%2Bcu121-cp312-cp312-win_amd64.whl", hash = "sha256:473d76257636c66b22cbfac6f616d6b522ef3d3473c13decb1afda22a7b059eb", upload-time = "2024-10-29T23:20:59Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu121/torch-2.5.1%2Bcu121-cp313-cp313-linux_x86_64.whl", hash = "sha256:1bfe18b79b0ff9be9383257a66c3f84621ce5f384f02c0a7c79503583d6ffd4b", upload-time = "2024-10-29T23:22:42Z" },
 ]
 
 [[package]]
