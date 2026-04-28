@@ -42,7 +42,8 @@ CUDA_COMPONENT_PACKAGES = {
 }
 
 _FAISS_TESTS_CMD = (
-    "pytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) $FAISS_TESTS_EXTRA_OPTS"
+    'pytest {project}/faiss/tests/ -n $((`nproc --all`/5+1))'
+    ' ${FAISS_TESTS_EXTRA_OPTS:+-k "$FAISS_TESTS_EXTRA_OPTS"}'
 )
 
 _CPU_TEST_COMMAND = f"""

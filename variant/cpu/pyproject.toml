@@ -5,33 +5,33 @@
 #
 # This file is created by the `generate_pyproject.py`.
 [build-system]
-requires = ["numpy>=2,<3", "scikit-build-core", "swig"]
+requires = ["scikit-build-core", "swig", "numpy>=2,<3"]
 build-backend = "scikit_build_core.build"
 
 [project]
 name = "faiss-cpu"
 version = "1.14.1.post1"
-description = "A library for efficient similarity search and clustering of dense vectors."
-readme = "../../README.md"
+dependencies = ["numpy>=2,<3", "packaging"]
 requires-python = ">=3.10,<3.14"
 authors = [{ name = "Di-Is", email = "rhoxbox@gmail.com" }]
+description = "A library for efficient similarity search and clustering of dense vectors."
+readme = "../../README.md"
 keywords = ["search nearest neighbors"]
 classifiers = [
-  "Development Status :: 5 - Production/Stable",
-  "Intended Audience :: Developers",
-  "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: MIT License",
-  "Operating System :: POSIX",
-  "Programming Language :: Python",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
-  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3 :: Only",
 ]
-dependencies = ["numpy>=2,<3", "packaging"]
 
 [project.license]
 file = "../../LICENSE"
@@ -46,7 +46,7 @@ dev = ["pytest", "pytest-xdist", "scipy", "torch"]
 
 [tool.uv]
 index = [
-  { name = "torch-index", url = "https://download.pytorch.org/whl/cpu", explicit = true },
+    { name = "torch-index", url = "https://download.pytorch.org/whl/cpu", explicit = true },
 ]
 
 [tool.uv.sources.torch]
@@ -116,7 +116,7 @@ environment-pass = ["NJOB", "FAISS_OPT_LEVEL", "FAISS_TESTS_EXTRA_OPTS"]
 before-test = "uv sync --project variant/cpu --no-install-project --active"
 test-extras = []
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
-test-command = "\n# CPU Test\npytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) $FAISS_TESTS_EXTRA_OPTS &&\npytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))\n"
+test-command = "\n# CPU Test\npytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) ${FAISS_TESTS_EXTRA_OPTS:+-k \"$FAISS_TESTS_EXTRA_OPTS\"} &&\npytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))\n"
 
 [tool.cibuildwheel.linux.environment]
 UV_CACHE_DIR = "/host/tmp/.cache/uv"
