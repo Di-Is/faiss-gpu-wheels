@@ -75,7 +75,8 @@ find_supported_cuda_host_compiler() {
 apply_cuda_host_compiler() {
     export CUDAHOSTCXX="$1"
     : "${CXX:=$CUDAHOSTCXX}" && export CXX
-    local candidate_cc="$(dirname "$CUDAHOSTCXX")/gcc"
+    local candidate_cc
+    candidate_cc="$(dirname "$CUDAHOSTCXX")/gcc"
     if [ -z "${CC:-}" ] && [ -x "$candidate_cc" ]; then
         export CC="$candidate_cc"
     fi

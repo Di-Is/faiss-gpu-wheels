@@ -107,7 +107,7 @@ jobs:
             exit 1
           fi
           extras=""
-          if [[ "${{ matrix.variant }}" == "gpu-cu11" || "${{ matrix.variant }}" == "gpu-cu12" || "${{ matrix.variant }}" == "gpu-cuvs" ]]; then
+          if [[ "${{ matrix.variant }}" != "cpu" ]]; then
             extras="[fix-cuda]"
           fi
           source "variant/${{ matrix.variant }}/.venv/bin/activate"
