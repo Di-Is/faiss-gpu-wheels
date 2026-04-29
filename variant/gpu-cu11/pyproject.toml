@@ -132,7 +132,7 @@ environment-pass = [
 before-test = "uv sync --project variant/gpu-cu11 --no-install-project --active"
 test-extras = ["fix-cuda"]
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel} --exclude libcudart.so.11.0 --exclude libcublas.so.11 --exclude libcublasLt.so.11"
-test-command = "\n# CPU Test\npytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) ${FAISS_TESTS_EXTRA_OPTS:+-k \"$FAISS_TESTS_EXTRA_OPTS\"} &&\npytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1)) &&\n# GPU Test\npytest {project}/faiss/tests/common_faiss_tests.py {project}/faiss/faiss/gpu/test/ &&\npytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py\n"
+test-command = "\npytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) ${FAISS_TESTS_EXTRA_OPTS:+-k \"$FAISS_TESTS_EXTRA_OPTS\"} &&\npytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1)) &&\npytest {project}/faiss/tests/common_faiss_tests.py {project}/faiss/faiss/gpu/test/ &&\npytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py\n"
 
 [tool.cibuildwheel.linux.environment]
 UV_CACHE_DIR = "/host/tmp/.cache/uv"

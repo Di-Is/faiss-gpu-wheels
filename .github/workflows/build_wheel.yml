@@ -2,7 +2,6 @@ name: Build & publish wheel
 
 on:
   workflow_call:
-  workflow_dispatch:
   pull_request:
     types: [opened, synchronize, reopened, labeled]
   release:
@@ -15,31 +14,13 @@ env:
   FAISS_TESTS_EXTRA_OPTS: "not test_update_codebooks_with_double"
   
 jobs:
-  prepare-matrix:
-    runs-on: ubuntu-latest
-    outputs:
-      variants: ${{ steps.set-matrix.outputs.variants }}
-    steps:
-      - name: Select variants
-        id: set-matrix
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            variants='["gpu-cuvs"]'
-          else
-            variants='["gpu-cu11","gpu-cu12","gpu-cuvs"]'
-          fi
-          echo "variants=${variants}" >> "${GITHUB_OUTPUT}"
-
   build-wheel:
-    needs: ["prepare-matrix"]
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'release' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'build')) }}
+    if: ${{ github.event_name == 'release' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'build')) }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        variant: ${{ fromJSON(needs.prepare-matrix.outputs.variants) }}
+        variant: ["gpu-cu11", "gpu-cu12", "gpu-cuvs"]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -68,12 +49,12 @@ jobs:
 
   test-cpu:
     name: cpu tests (wheel)
-    needs: ["prepare-matrix", "build-wheel"]
+    needs: ["build-wheel"]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        variant: ${{ fromJSON(needs.prepare-matrix.outputs.variants) }}
+        variant: ["gpu-cu11", "gpu-cu12", "gpu-cuvs"]
         python-version: ["3.10", "3.11", "3.12", "3.13"]
     env:
       OMP_NUM_THREADS: "1"

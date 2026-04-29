@@ -116,7 +116,7 @@ environment-pass = ["NJOB", "FAISS_OPT_LEVEL", "FAISS_TESTS_EXTRA_OPTS"]
 before-test = "uv sync --project variant/cpu --no-install-project --active"
 test-extras = []
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
-test-command = "\n# CPU Test\npytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) ${FAISS_TESTS_EXTRA_OPTS:+-k \"$FAISS_TESTS_EXTRA_OPTS\"} &&\npytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))\n"
+test-command = "\npytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) ${FAISS_TESTS_EXTRA_OPTS:+-k \"$FAISS_TESTS_EXTRA_OPTS\"} &&\npytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))\n"
 
 [tool.cibuildwheel.linux.environment]
 UV_CACHE_DIR = "/host/tmp/.cache/uv"
