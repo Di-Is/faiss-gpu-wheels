@@ -51,17 +51,14 @@ jobs:
       - name: Get faiss submodule ref
         id: faiss-ref
         run: echo "hash=$(git rev-parse HEAD:faiss)" >> "$GITHUB_OUTPUT"
-      - name: Restore build caches
+      - name: Restore ccache
         uses: actions/cache@v4
         with:
-          path: |
-            /tmp/.cache/ccache
-            /tmp/.cache/rpm
-            /tmp/.cache/uv
-          key: build-cache-${{ matrix.variant }}-${{ hashFiles('script/build.sh', 'CMakeLists.txt') }}-${{ steps.faiss-ref.outputs.hash }}-${{ github.sha }}
+          path: /tmp/.cache/ccache
+          key: ccache-${{ matrix.variant }}-${{ hashFiles('script/build.sh', 'CMakeLists.txt') }}-${{ steps.faiss-ref.outputs.hash }}-${{ github.sha }}
           restore-keys: |
-            build-cache-${{ matrix.variant }}-${{ hashFiles('script/build.sh', 'CMakeLists.txt') }}-${{ steps.faiss-ref.outputs.hash }}-
-            build-cache-${{ matrix.variant }}-
+            ccache-${{ matrix.variant }}-${{ hashFiles('script/build.sh', 'CMakeLists.txt') }}-${{ steps.faiss-ref.outputs.hash }}-
+            ccache-${{ matrix.variant }}-
       - name: build faiss-${{ matrix.variant }}
         run: uvx cibuildwheel@2.23.2 variant/${{ matrix.variant }} --output-dir wheelhouse
       - uses: actions/upload-artifact@v4
