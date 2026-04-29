@@ -9,13 +9,14 @@ requires = ["scikit-build-core", "swig", "numpy>=2,<3"]
 build-backend = "scikit_build_core.build"
 
 [project]
-name = "faiss-gpu-cu11"
+name = "faiss-gpu-cuvs"
 version = "1.14.1.post1"
 dependencies = [
     "numpy>=2,<3",
     "packaging",
-    "nvidia-cuda-runtime-cu11>=11.8.89",
-    "nvidia-cublas-cu11>=11.11.3.6",
+    "nvidia-cuda-runtime-cu12>=12.4.127",
+    "nvidia-cublas-cu12>=12.4.5.8",
+    "libcuvs-cu12==25.10.*",
 ]
 requires-python = ">=3.10,<3.14"
 authors = [{ name = "Di-Is", email = "rhoxbox@gmail.com" }]
@@ -37,7 +38,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3 :: Only",
     "Environment :: GPU :: NVIDIA CUDA",
-    "Environment :: GPU :: NVIDIA CUDA :: 11",
+    "Environment :: GPU :: NVIDIA CUDA :: 12",
 ]
 
 [project.license]
@@ -48,8 +49,12 @@ faiss-gpu-wheels = "https://github.com/Di-Is/faiss-gpu-wheels"
 
 [project.optional-dependencies]
 fix-cuda = [
-    "nvidia-cuda-runtime-cu11==11.8.89",
-    "nvidia-cublas-cu11==11.11.3.6",
+    "nvidia-cuda-runtime-cu12==12.4.127",
+    "nvidia-cublas-cu12==12.4.5.8",
+    "nvidia-curand-cu12==10.3.5.147",
+    "nvidia-cusolver-cu12==11.6.1.9",
+    "nvidia-cusparse-cu12==12.3.1.170",
+    "nvidia-nvjitlink-cu12==12.4.127",
 ]
 
 [dependency-groups]
@@ -57,11 +62,37 @@ dev = ["pytest", "pytest-xdist", "scipy", "torch"]
 
 [tool.uv]
 index = [
-    { name = "torch-index", url = "https://download.pytorch.org/whl/cu118", explicit = true },
+    { name = "torch-index", url = "https://download.pytorch.org/whl/cu124", explicit = true },
+    { name = "extra-index-1", url = "https://pypi.nvidia.com", explicit = true },
+]
+environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
+required-environments = [
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",
 ]
 
 [tool.uv.sources.torch]
 index = "torch-index"
+
+[tool.uv.sources.libcuvs-cu12]
+index = "extra-index-1"
+
+[tool.uv.sources.nvidia-cuda-runtime-cu12]
+index = "extra-index-1"
+
+[tool.uv.sources.nvidia-cublas-cu12]
+index = "extra-index-1"
+
+[tool.uv.sources.nvidia-curand-cu12]
+index = "extra-index-1"
+
+[tool.uv.sources.nvidia-cusolver-cu12]
+index = "extra-index-1"
+
+[tool.uv.sources.nvidia-cusparse-cu12]
+index = "extra-index-1"
+
+[tool.uv.sources.nvidia-nvjitlink-cu12]
+index = "extra-index-1"
 
 [tool.scikit-build.cmake]
 source-dir = "../../"
@@ -120,18 +151,19 @@ exclude = ["*.cxx"]
 [tool.cibuildwheel]
 build-frontend = "build[uv]"
 skip = "pp* *-musllinux* *i686"
+manylinux-x86_64-image = "manylinux_2_28"
 
 [tool.cibuildwheel.linux]
-before-all = "CUDA_VERSION=\"11.8.0\" CUDA_ARCHITECTURES=\"70-real;80-real\" script/build.sh"
+before-all = "CUDA_VERSION=\"12.4.1\" CUDA_ARCHITECTURES=\"70-real;75-real;80-real;86-real\" CUVS_VERSION=\"25.10.*\" NVIDIA_EXTRA_INDEX_URL=\"https://pypi.nvidia.com\" CMAKE_VERSION=\"3.30.4\" RAPIDS_WHEEL_DIR=\"/usr/local/rapids-wheel-deps\" script/build.sh"
 environment-pass = [
     "NJOB",
     "FAISS_OPT_LEVEL",
     "CUDA_ARCHITECTURES",
     "FAISS_TESTS_EXTRA_OPTS",
 ]
-before-test = "uv sync --project variant/gpu-cu11 --no-install-project --active"
+before-test = "uv sync --project variant/gpu-cuvs --no-install-project --active"
 test-extras = ["fix-cuda"]
-repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel} --exclude libcudart.so.11.0 --exclude libcublas.so.11 --exclude libcublasLt.so.11"
+repair-wheel-command = "LD_LIBRARY_PATH=\"/usr/local/lib64:/usr/local/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}\" auditwheel repair -w {dest_dir} {wheel} --exclude libcudart.so.12 --exclude libcublas.so.12 --exclude libcublasLt.so.12 --exclude libcurand.so.10 --exclude libcusolver.so.11 --exclude libcusparse.so.12 --exclude libnvJitLink.so.12 --exclude libnccl.so.2 --exclude libcuvs.so --exclude libcuvs_c.so --exclude libraft.so --exclude librmm.so --exclude librapids_logger.so"
 test-command = "\npytest {project}/faiss/tests/ -n $((`nproc --all`/5+1)) ${FAISS_TESTS_EXTRA_OPTS:+-k \"$FAISS_TESTS_EXTRA_OPTS\"} &&\npytest {project}/faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1)) &&\npytest {project}/faiss/tests/common_faiss_tests.py {project}/faiss/faiss/gpu/test/ &&\npytest {project}/faiss/faiss/gpu/test/torch_test_contrib_gpu.py\n"
 
 [tool.cibuildwheel.linux.environment]
@@ -139,3 +171,18 @@ UV_CACHE_DIR = "/host/tmp/.cache/uv"
 UV_LINK_MODE = "copy"
 OMP_NUM_THREADS = "1"
 FAISS_ENABLE_GPU = "ON"
+PIP_EXTRA_INDEX_URL = "https://pypi.nvidia.com"
+UV_EXTRA_INDEX_URL = "https://pypi.nvidia.com"
+FAISS_ENABLE_CUVS = "ON"
+CMAKE_PREFIX_PATH = "/usr/local/rapids-wheel-deps/libcuvs;/usr/local/rapids-wheel-deps/libraft;/usr/local/rapids-wheel-deps/librmm;/usr/local/rapids-wheel-deps/rapids_logger"
+FAISS_CUVS_DIR = "/usr/local/rapids-wheel-deps/libcuvs/lib64/cmake/cuvs"
+FAISS_RAFT_DIR = "/usr/local/rapids-wheel-deps/libraft/lib64/cmake/raft"
+FAISS_RMM_DIR = "/usr/local/rapids-wheel-deps/librmm/lib64/cmake/rmm"
+FAISS_HNSWLIB_DIR = "/usr/local/rapids-wheel-deps/libcuvs/lib64/cmake/hnswlib"
+FAISS_CUCO_DIR = "/usr/local/rapids-wheel-deps/libraft/lib64/cmake/cuco"
+FAISS_NVIDIA_CUTLASS_DIR = "/usr/local/rapids-wheel-deps/libraft/lib64/cmake/NvidiaCutlass"
+FAISS_NVTX3_DIR = "/usr/local/rapids-wheel-deps/librmm/lib64/cmake/nvtx3"
+FAISS_RAPIDS_LOGGER_DIR = "/usr/local/rapids-wheel-deps/rapids_logger/lib64/cmake/rapids_logger"
+FAISS_C_COMPILER = "/opt/rh/gcc-toolset-13/root/usr/bin/gcc"
+FAISS_CXX_COMPILER = "/opt/rh/gcc-toolset-13/root/usr/bin/g++"
+FAISS_CUDA_HOST_COMPILER = "/opt/rh/gcc-toolset-13/root/usr/bin/g++"
