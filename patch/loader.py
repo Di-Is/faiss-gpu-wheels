@@ -59,13 +59,13 @@ def _load_module(preload_target: _PreloadTarget) -> None:
     function_name = preload_target.get("function", "load_library")
     logger.debug(
         "Try to load shared library via module helper.",
-        extra={"group": preload_target["group"], "module": module_name, "function": function_name},
+        extra={"group": preload_target["group"], "module_name": module_name, "fn": function_name},
     )
     load = getattr(import_module(module_name), function_name)
     load()
     logger.debug(
         "Finish to load shared library via module helper.",
-        extra={"group": preload_target["group"], "module": module_name, "function": function_name},
+        extra={"group": preload_target["group"], "module_name": module_name, "fn": function_name},
     )
 
 
