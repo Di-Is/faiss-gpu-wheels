@@ -12,7 +12,7 @@ env:
   FAISS_OPT_LEVEL: "generic"
   CUDA_ARCHITECTURES: "70-real;80-real"
   CIBW_TEST_COMMAND_LINUX: ""
-  FAISS_TESTS_EXTRA_OPTS: '-k "not test_update_codebooks_with_double"'
+  FAISS_TESTS_EXTRA_OPTS: "not test_update_codebooks_with_double"
   
 jobs:
   prepare-matrix:
@@ -116,7 +116,7 @@ jobs:
           source "variant/${{ matrix.variant }}/.venv/bin/activate"
           uv run --python "${{ matrix.python-version }}" --active --no-project --no-sync \
             --with "${wheel_path}${extras}" bash -lc \
-            "pytest faiss/tests/ -n $((`nproc --all`/5+1)) \$FAISS_TESTS_EXTRA_OPTS && \
+            "pytest faiss/tests/ -n $((`nproc --all`/5+1)) \${FAISS_TESTS_EXTRA_OPTS:+-k \"\$FAISS_TESTS_EXTRA_OPTS\"} && \
              pytest faiss/tests/torch_test_contrib.py -n $((`nproc --all`/5+1))"
 
   publish:
