@@ -4,6 +4,7 @@ This repository is based on [kyamagu/faiss-wheels](https://github.com/kyamagu/fa
 
 [![PyPI](https://img.shields.io/pypi/v/faiss-gpu-cu11?label=faiss-gpu-cu11)](https://pypi.org/project/faiss-gpu-cu11/)
 [![PyPI](https://img.shields.io/pypi/v/faiss-gpu-cu12?label=faiss-gpu-cu12)](https://pypi.org/project/faiss-gpu-cu12/)
+[![PyPI](https://img.shields.io/pypi/v/faiss-gpu-cuvs?label=faiss-gpu-cuvs)](https://pypi.org/project/faiss-gpu-cuvs/)
 
 ## Overview
 
@@ -77,6 +78,7 @@ pip install faiss-gpu-cu12
 
 * OS: Linux x86_64 (glibc ≥2.17)
 * GPU: Compute Capability 7.0–8.9
+* Python: 3.10–3.13
 
 ### For CUDA 12.4 + cuVS
 
@@ -94,13 +96,16 @@ pip install faiss-gpu-cuvs --extra-index-url=https://pypi.nvidia.com
 * The build and runtime `libcuvs` series are intentionally pinned to the same RAPIDS release line
 * The wheel is built with a `manylinux_2_28` base image so that the advertised libc baseline matches the cuVS-enabled build
 * `[fix-cuda]` pins CUDA runtime, cuBLAS, cuRAND, cuSOLVER, cuSPARSE, and nvJitLink to the build baseline while keeping the same cuVS line
-* Installation requires the NVIDIA package index because `libcuvs-cu12` and related RAPIDS binary wheels are distributed there
+* Without `[fix-cuda]`: CUDA runtime, cuBLAS, cuRAND, cuSOLVER, cuSPARSE, and nvJitLink may float to any CUDA 12.X (X≥4); driver requirement varies accordingly (see Driver Compatibility Reference below)
+* `libcuvs-cu12` itself depends on `cuda-toolkit==12.*`, which can pull in the latest CUDA 12.X minor version; use `[fix-cuda]` if you need to stay on the CUDA 12.4 baseline
+* `--extra-index-url=https://pypi.nvidia.com` is recommended (the `libcuvs-cu12` PyPI sdist uses NVIDIA's `wheel-stub` to fetch the real wheel from pypi.nvidia.com; explicitly setting the index avoids surprises in restricted-network environments)
 * At import time, the wheel delegates cuVS loading to `libcuvs.load_library()`, which loads `libcuvs`, `libraft`, `librmm`, and the required CUDA-side dependencies in the expected order
 
 **System Requirements:**
 
 * OS: Linux x86_64 (glibc ≥2.28)
 * GPU: Compute Capability 7.0–8.9
+* Python: 3.10–3.13
 
 ### For CUDA 11
 
@@ -122,6 +127,7 @@ pip install faiss-gpu-cu11
 
 * OS: Linux x86_64 (glibc ≥2.17)
 * GPU: Compute Capability 7.0–8.9
+* Python: 3.10–3.13
 
 ### Driver Compatibility Reference
 
@@ -130,7 +136,7 @@ pip install faiss-gpu-cu11
 | CUDA 11.8    | ≥R520 (520.61.05)      |
 | CUDA 12.1    | ≥R530 (530.30.02)      |
 | CUDA 12.4    | ≥R550                  |
-| CUDA 12.2+   | Check [NVIDIA Documentation](https://docs.nvidia.com/deploy/cuda-compatibility/) |
+| Other CUDA 12.X | See [NVIDIA CUDA Compatibility](https://docs.nvidia.com/deploy/cuda-compatibility/) |
 
 **Warning**: When installing without `[fix-cuda]`, pip may resolve to a newer CUDA version that requires a newer driver than you have installed. Always verify driver compatibility before installation.
 
@@ -197,7 +203,10 @@ Wheels will be created in `{repository_root}/wheelhouse/gpu-cuXX/`.
 
 * OS: Linux x86_64
 * NVIDIA Container Toolkit (if running tests)
-* NVIDIA Driver: ≥R530 (if running tests with CUDA 12)
+* NVIDIA Driver (if running tests):
+  * `faiss-gpu-cu11`: ≥R520
+  * `faiss-gpu-cu12`: ≥R530
+  * `faiss-gpu-cuvs`: ≥R550
 * `uv` available in the build environment
 * For `faiss-gpu-cuvs`, access to `https://pypi.nvidia.com` to install RAPIDS binary wheels (`libcuvs-cu12`, `libraft-cu12`, `librmm-cu12`, `rapids-logger`)
 * For `faiss-gpu-cuvs`, `cmake >= 3.30.4`
